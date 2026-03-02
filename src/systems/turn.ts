@@ -5,7 +5,7 @@
  */
 
 import type { Action, GameState, TurnRecord, TurnStats } from '../core/types.js';
-import { generateId, updateState } from '../core/state.js';
+import { emitSystemEvent, generateId, updateState } from '../core/state.js';
 
 // ============================================================================
 // Turn Manager
@@ -32,7 +32,7 @@ export class TurnManager {
     const firstPlayerId = turnOrder[0];
     const now = Date.now();
 
-    return updateState(state, draft => {
+    let newState = updateState(state, draft => {
       draft.status = 'active';
       (draft.turns as any).currentTurn = 1;
       (draft.turns as any).currentPlayerId = firstPlayerId;
@@ -50,6 +50,12 @@ export class TurnManager {
         },
       });
     });
+
+    // Emit game-started and turn-start events
+    newState = emitSystemEvent(newState, 'game-started', 'system');
+    newState = emitSystemEvent(newState, 'turn-start', firstPlayerId);
+
+    return newState;
   }
 
   /**
@@ -79,7 +85,7 @@ export class TurnManager {
     const nextPlayerId = state.turns.turnOrder[nextIndex];
     const nextTurn = currentTurn + 1;
 
-    return updateState(state, draft => {
+    let newState = updateState(state, draft => {
       // Record turn history
       const turnRecord: TurnRecord = {
         turnNumber: currentTurn,
@@ -120,6 +126,11 @@ export class TurnManager {
         }
       );
     });
+
+    // Emit turn-start for next player (turn-end emitted by engine)
+    newState = emitSystemEvent(newState, 'turn-start', nextPlayerId);
+
+    return newState;
   }
 
   /**

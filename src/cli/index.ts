@@ -9,7 +9,7 @@
 import { Command } from 'commander';
 import * as readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
-import { NomicEngine, generateId, type Rule } from '../index.js';
+import { NomicEngine, generateId, type Rule, type RuleTrigger } from '../index.js';
 
 const program = new Command();
 
@@ -115,6 +115,7 @@ async function interactivePlay(engine: NomicEngine, saveFile: string): Promise<v
   console.log('  status      - Show game status');
   console.log('  rules       - List active rules');
   console.log('  leaderboard - Show player standings');
+  console.log('  show-state  - Show full game state (JSON)');
   console.log('  add-player  - Add a new player (setup only)');
   console.log('  start       - Start the game');
   console.log('  propose     - Propose a new rule');
@@ -154,6 +155,10 @@ async function interactivePlay(engine: NomicEngine, saveFile: string): Promise<v
           showLeaderboard(engine);
           break;
 
+        case 'show-state':
+          showState(engine);
+          break;
+
         case 'add-player':
           await addPlayer(engine, rl);
           break;
@@ -187,7 +192,7 @@ async function interactivePlay(engine: NomicEngine, saveFile: string): Promise<v
           break;
 
         case 'help':
-          console.log('\nSee available commands above');
+          showHelp(engine);
           break;
 
         default:
@@ -207,6 +212,42 @@ async function interactivePlay(engine: NomicEngine, saveFile: string): Promise<v
 // ============================================================================
 // Display Functions
 // ============================================================================
+
+function showHelp(engine: NomicEngine): void {
+  const state = engine.getState();
+
+  console.log('\n┌─ Available Commands ──────────────────┐\n');
+
+  // Always available commands
+  console.log('  status      - Show game status');
+  console.log('  rules       - List active rules');
+  console.log('  leaderboard - Show player standings');
+  console.log('  show-state  - Show full game state (JSON)');
+  console.log('  help        - Show this help message');
+  console.log('  save        - Save the game');
+  console.log('  quit/exit   - Exit the game');
+
+  // Conditional commands
+  if (state.status === 'setup') {
+    console.log('\n  add-player  - Add a new player');
+    console.log('  start       - Start the game');
+  } else {
+    console.log('\n  add-player  - (only during setup)');
+    console.log('  start       - (only during setup)');
+  }
+
+  if (state.status === 'active') {
+    console.log('  propose     - Propose a new rule');
+    console.log('  vote        - Vote on a proposal (if needed)');
+    console.log('  end-turn    - End current turn');
+  } else {
+    console.log('  propose     - (only when game is active)');
+    console.log('  vote        - (only when game is active)');
+    console.log('  end-turn    - (only when game is active)');
+  }
+
+  console.log('\n└───────────────────────────────────────┘');
+}
 
 function showStatus(engine: NomicEngine): void {
   const state = engine.getState();
@@ -238,7 +279,16 @@ function showRules(engine: NomicEngine): void {
   for (const rule of rules) {
     console.log(`[${rule.number}] ${rule.name}`);
     console.log(`    ${rule.description}`);
-    console.log(`    ${rule.isMutable ? 'Mutable' : 'Immutable'}\n`);
+    console.log(`    ${rule.isMutable ? 'Mutable' : 'Immutable'}`);
+    console.log(`    Proposed by: ${rule.proposedBy}`);
+
+    // Display the code
+    console.log(`\n    Code:`);
+    const codeLines = rule.code.split('\n');
+    for (const line of codeLines) {
+      console.log(`      ${line}`);
+    }
+    console.log('');
   }
 
   console.log('└───────────────────────────────────────┘');
@@ -255,6 +305,39 @@ function showLeaderboard(engine: NomicEngine): void {
   });
 
   console.log('\n└───────────────────────────────────────┘');
+}
+
+function showState(engine: NomicEngine): void {
+  const state = engine.getState();
+
+  // Create a copy of state with rules simplified and history summarized
+  const stateForDisplay = {
+    ...state,
+    rules: state.rules.map(rule => ({
+      id: rule.id,
+      number: rule.number,
+      name: rule.name,
+      description: rule.description,
+      isActive: rule.isActive,
+      isMutable: rule.isMutable,
+      proposedBy: rule.proposedBy,
+      // Omit the code field for cleaner output
+    })),
+    history: `[${state.history.length} transitions - omitted for brevity]`
+  };
+
+  console.log('\n┌─ Game State (simplified) ─────────────┐\n');
+  console.log(JSON.stringify(stateForDisplay, (_key, value) => {
+    if (value instanceof Map) {
+      return {
+        __type: 'Map',
+        entries: Array.from(value.entries())
+      };
+    }
+    return value;
+  }, 2));
+  console.log('\n└───────────────────────────────────────┘');
+  console.log(`Note: Omitted ${state.history.length} history entries and rule code for clarity\n`);
 }
 
 // ============================================================================
@@ -305,9 +388,27 @@ async function proposeRule(engine: NomicEngine, rl: readline.Interface): Promise
     return;
   }
 
+  // Prompt for triggers
+  console.log('\nWhen should this rule execute?');
+  console.log('1. At the end of each turn');
+  console.log('2. When a specific event occurs');
+  console.log('3. Never (rule is informational only)');
+
+  const triggerChoice = await rl.question('Choose (1/2/3): ');
+
+  let triggers: RuleTrigger[];
+  if (triggerChoice === '1') {
+    triggers = [{ type: 'event', eventType: 'turn-end' }];
+  } else if (triggerChoice === '2') {
+    const eventType = await rl.question('Event type: ');
+    triggers = [{ type: 'event', eventType }];
+  } else {
+    triggers = [{ type: 'never' }];
+  }
+
   // Get next available rule number
   const existingNumbers = engine.getAllRules().map(r => r.number);
-  const nextNumber = Math.max(...existingNumbers, 400) + 1;
+  const nextNumber = Math.max(...existingNumbers, 200) + 1;
 
   const rule: Rule = {
     id: generateId(),
@@ -319,11 +420,42 @@ async function proposeRule(engine: NomicEngine, rl: readline.Interface): Promise
     isMutable: true,
     proposedBy: currentPlayerId,
     createdAt: Date.now(),
+    triggers,
   };
 
   const proposalId = engine.proposeRule(currentPlayerId, description, rule);
   console.log(`\n✓ Proposal created: ${proposalId.slice(0, 8)}...`);
-  console.log(`  All players must vote on this proposal.`);
+  console.log(`  Rule ${nextNumber}: ${name.trim()}`);
+
+  // Immediately start voting
+  console.log('\n--- Voting Phase ---');
+  const players = engine.getPlayers();
+
+  for (const player of players) {
+    console.log(`\n${player.name}'s vote:`);
+    let voteValue: string;
+
+    while (true) {
+      voteValue = await rl.question('Vote (yes/no/abstain): ');
+      if (['yes', 'no', 'abstain'].includes(voteValue)) {
+        break;
+      }
+      console.log('Invalid vote. Must be yes, no, or abstain');
+    }
+
+    engine.vote(proposalId, player.id, voteValue as 'yes' | 'no' | 'abstain');
+    console.log(`✓ ${player.name} voted: ${voteValue}`);
+  }
+
+  // Proposal will auto-resolve after all votes are in
+  console.log('\n--- Voting Complete ---');
+  const proposal = engine.getProposal(proposalId);
+  if (proposal) {
+    console.log(`Proposal ${proposal.status === 'passed' ? 'PASSED' : 'FAILED'}`);
+    if (proposal.status === 'passed') {
+      console.log(`✓ Rule ${nextNumber} is now active!`);
+    }
+  }
 }
 
 async function voteOnProposal(

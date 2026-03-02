@@ -50,6 +50,7 @@
 // ============================================================================
 
 export { NomicEngine } from './core/engine.js';
+export type { NomicEngineOptions } from './core/engine.js';
 
 // ============================================================================
 // Core Types
@@ -79,7 +80,12 @@ export type {
   ExecutionResult,
   ValidationResult,
   Writable,
+  GameEvent,
+  RuleTrigger,
+  SystemEvent,
 } from './core/types.js';
+
+export { SYSTEM_EVENTS } from './core/types.js';
 
 // ============================================================================
 // Errors
@@ -106,6 +112,7 @@ export {
   awardPoints,
   addRule,
   addTransition,
+  emitSystemEvent,
   StateHelpers,
 } from './core/state.js';
 
@@ -122,6 +129,12 @@ export { VotingManager } from './systems/voting.js';
 
 export { RuleExecutor } from './rules/executor.js';
 export type { ExecuteMultipleResult } from './rules/executor.js';
+
+export {
+  EventDispatcher,
+  DEFAULT_DISPATCHER_CONFIG,
+} from './rules/dispatcher.js';
+export type { EventDispatcherConfig } from './rules/dispatcher.js';
 
 export { RuleSandbox, DEFAULT_SANDBOX_CONFIG } from './sandbox/runtime.js';
 export type { SandboxConfig } from './sandbox/runtime.js';

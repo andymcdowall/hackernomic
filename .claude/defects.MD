@@ -1,0 +1,2 @@
+- Abstaining during a vote prevents a vote from being closed. For example, if three votes are needed, with 2 yeses and one abstaintion, the vote doesn't "pass" because only 2 votes are in. In fact, the vote should pass.
+- extract MAX_EVENT_DEPTH in @dispatcher.ts to config file

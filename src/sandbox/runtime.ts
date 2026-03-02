@@ -134,7 +134,7 @@ export class RuleSandbox {
    * Deep clone state for sandbox (prevents any possibility of mutation)
    */
   private cloneState(state: GameState): any {
-    return JSON.parse(JSON.stringify(state, this.mapReplacer));
+    return JSON.parse(JSON.stringify(state, this.mapReplacer), this.mapReviver);
   }
 
   /**
@@ -146,6 +146,16 @@ export class RuleSandbox {
         __type: 'Map',
         value: Array.from(value.entries()),
       };
+    }
+    return value;
+  }
+
+  /**
+   * JSON reviver to restore Maps
+   */
+  private mapReviver(_key: string, value: any): any {
+    if (value && value.__type === 'Map') {
+      return new Map(value.value);
     }
     return value;
   }
