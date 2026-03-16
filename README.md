@@ -322,8 +322,9 @@ nomic-engine/
 │   │       ├── scenario-runner.ts # Drives CLI via stdin/stdout
 │   │       └── e2e.test.ts       # Vitest E2E entry point
 │   └── index.ts              # Main export
-├── fixtures/                 # Pre-built game states for E2E tests
-├── scenarios/                # YAML E2E test scenarios
+├── e2e/
+│   ├── fixtures/             # Pre-built game states for E2E tests
+│   └── scenarios/            # YAML E2E test scenarios
 └── examples/
     └── initial-rules.ts      # Example rules
 ```
@@ -369,7 +370,7 @@ Create a `.yaml` file in `scenarios/`. It is auto-discovered by the test runner.
 name: "Short human-readable test name"
 description: "Optional longer explanation"
 
-fixture: fixtures/game-active-3-players.json   # pre-built game state
+fixture: e2e/fixtures/game-active-3-players.json   # pre-built game state
 
 actions:
   - type: propose
@@ -456,8 +457,8 @@ Re-run the factory whenever the game state format changes:
 npm run generate-fixtures
 ```
 
-To add a new fixture, add a creator function in `fixture-factory.ts` and
-call it from `generateAllFixtures()`.
+To add a new fixture, add a creator function in `fixture-factory.ts` and call it
+from `generateAllFixtures()`. Fixtures are written to `e2e/fixtures/`.
 
 ## Architecture Decisions
 

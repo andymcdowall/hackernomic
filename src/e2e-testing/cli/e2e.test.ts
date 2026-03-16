@@ -19,7 +19,7 @@ import type { Scenario } from './types.js';
 import { runScenario } from './scenario-runner.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SCENARIOS_DIR = path.join(__dirname, '../../../scenarios');
+const SCENARIOS_DIR = path.join(__dirname, '../../../e2e/scenarios');
 
 function discoverScenarios(): Array<{ file: string; scenario: Scenario }> {
   let files: string[];

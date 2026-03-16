@@ -1,9 +1,9 @@
-name: "Propose rule - majority yes - proposal passes"
+name: "Propose rule - majority no - proposal fails"
 description: >
-  When the current player proposes a rule and all three players vote yes,
-  the proposal should pass and the new rule should become active.
+  When a majority of players vote no, the proposal should fail and
+  the rule should NOT become active.
 
-fixture: fixtures/game-active-3-players.json
+fixture: e2e/fixtures/game-active-3-players.json
 
 actions:
   - type: propose
@@ -14,11 +14,12 @@ actions:
       trigger: "turn-end"
     votes:
       Alice: yes
-      Bob: yes
-      Charlie: yes
+      Bob: no
+      Charlie: no
     expect_output:
-      - "Proposal PASSED"
+      - "Proposal FAILED"
+    expect_not_output:
       - "is now active"
     expect_state:
       pending_proposals: 0
-      adopted_proposals: 1
+      rejected_proposals: 1

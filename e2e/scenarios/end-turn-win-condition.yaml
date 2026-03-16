@@ -4,7 +4,7 @@ description: >
   Rule 203 then checks if any player has 30+ points and sets status to completed.
   Ending Alice's turn should trigger the win condition.
 
-fixture: fixtures/game-near-win.json
+fixture: e2e/fixtures/game-near-win.json
 
 actions:
   - type: end_turn

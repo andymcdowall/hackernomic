@@ -4,7 +4,7 @@ description: >
   voted yes. Bob and Charlie vote yes, completing all required votes.
   The proposal auto-resolves after all three players have voted.
 
-fixture: fixtures/game-pending-proposal-1-yes.json
+fixture: e2e/fixtures/game-pending-proposal-1-yes.json
 
 actions:
   - type: vote

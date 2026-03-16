@@ -3,7 +3,7 @@ description: >
   The status command should display current game status, all player names,
   and summary counts for proposals and rules.
 
-fixture: fixtures/game-active-3-players.json
+fixture: e2e/fixtures/game-active-3-players.json
 
 actions:
   - type: status

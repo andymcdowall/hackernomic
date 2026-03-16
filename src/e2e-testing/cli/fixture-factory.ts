@@ -22,7 +22,7 @@ import {
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = path.join(__dirname, '../../..');
-const FIXTURES_DIR = path.join(PROJECT_ROOT, 'fixtures');
+const FIXTURES_DIR = path.join(PROJECT_ROOT, 'e2e', 'fixtures');
 
 // ============================================================================
 // Individual Fixture Creators
@@ -163,7 +163,7 @@ export async function generateAllFixtures(): Promise<void> {
   await createNearWin();
   await createPassedProposal();
 
-  console.log('\n✓ All fixtures generated in fixtures/\n');
+  console.log('\n✓ All fixtures generated in e2e/fixtures/\n');
 }
 
 // Run when called directly: tsx src/e2e-testing/cli/fixture-factory.ts
