@@ -1,0 +1,25 @@
+name: "Vote on pending proposal - individual vote"
+description: >
+  The game-pending-proposal-1-yes fixture has a proposal where Alice already
+  voted yes. Bob and Charlie vote yes, completing all required votes.
+  The proposal auto-resolves after all three players have voted.
+
+fixture: fixtures/game-pending-proposal-1-yes.json
+
+actions:
+  - type: vote
+    on: latest_proposal
+    player: Bob
+    value: yes
+    expect_output:
+      - "Bob voted: yes"
+
+  - type: vote
+    on: latest_proposal
+    player: Charlie
+    value: yes
+    expect_output:
+      - "Charlie voted: yes"
+    expect_state:
+      pending_proposals: 0
+      adopted_proposals: 1

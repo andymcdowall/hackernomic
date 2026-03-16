@@ -1,0 +1,24 @@
+name: "Propose rule - majority yes - proposal passes"
+description: >
+  When the current player proposes a rule and all three players vote yes,
+  the proposal should pass and the new rule should become active.
+
+fixture: fixtures/game-active-3-players.json
+
+actions:
+  - type: propose
+    rule:
+      name: "Award Turn Points"
+      description: "Awards 5 points to current player on turn end"
+      code: "(state, context) => { const p = StateHelpers.getCurrentPlayer(state); if (p) return StateHelpers.awardPoints(state, p.id, 5); return state; }"
+      trigger: "turn-end"
+    votes:
+      Alice: yes
+      Bob: yes
+      Charlie: yes
+    expect_output:
+      - "Proposal PASSED"
+      - "is now active"
+    expect_state:
+      pending_proposals: 0
+      adopted_proposals: 1

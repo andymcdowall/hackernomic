@@ -1,0 +1,337 @@
+{
+  "version": "1.0.0",
+  "gameId": "cb4326eb78814031ce706fade3392381",
+  "createdAt": 1773703854545,
+  "updatedAt": 1773703854552,
+  "status": "active",
+  "players": [
+    {
+      "id": "27e5e15d53f8e6eca058f5bea779aa89",
+      "name": "Alice",
+      "joinedAt": 1773703854545,
+      "isActive": true
+    },
+    {
+      "id": "a9aaace6f8cfd24724654c4efd4accae",
+      "name": "Bob",
+      "joinedAt": 1773703854545,
+      "isActive": true
+    },
+    {
+      "id": "95f98e3c79b135bcd74462bf82adc5ab",
+      "name": "Charlie",
+      "joinedAt": 1773703854545,
+      "isActive": true
+    }
+  ],
+  "points": [
+    [
+      "27e5e15d53f8e6eca058f5bea779aa89",
+      10
+    ],
+    [
+      "a9aaace6f8cfd24724654c4efd4accae",
+      0
+    ],
+    [
+      "95f98e3c79b135bcd74462bf82adc5ab",
+      0
+    ]
+  ],
+  "rules": [
+    {
+      "id": "69d42ef162aa095ff2b2936e7b99e97c",
+      "number": 1,
+      "name": "Sequential Turn Order",
+      "description": "Players take turns in sequential order.",
+      "code": "// Enforced by turn management system",
+      "isActive": true,
+      "isMutable": false,
+      "proposedBy": "system",
+      "createdAt": 1773703854545,
+      "triggers": [
+        {
+          "type": "never"
+        }
+      ]
+    },
+    {
+      "id": "dfeb75a601a0931ac5098c8f8d5afe50",
+      "number": 2,
+      "name": "One Proposal Per Turn",
+      "description": "Each player may propose one rule per turn.",
+      "code": "// Enforced by voting system",
+      "isActive": true,
+      "isMutable": false,
+      "proposedBy": "system",
+      "createdAt": 1773703854545,
+      "triggers": [
+        {
+          "type": "never"
+        }
+      ]
+    },
+    {
+      "id": "fcc86de37d5c35d40b5937976005de8d",
+      "number": 3,
+      "name": "Majority Vote",
+      "description": "A proposed rule is adopted if and only if a majority of players vote yes.",
+      "code": "// Implemented in voting system",
+      "isActive": true,
+      "isMutable": false,
+      "proposedBy": "system",
+      "createdAt": 1773703854545,
+      "triggers": [
+        {
+          "type": "never"
+        }
+      ]
+    },
+    {
+      "id": "5a163dbb9b31ed847d1c8b04840630b7",
+      "number": 4,
+      "name": "Points for Adopted Rules",
+      "description": "When a rule is adopted, its proposer gains 10 points.",
+      "code": "(state, context) => {\n  // Award 10 points to the proposer when a rule is adopted\n  if (context.triggeredBy) {\n    return StateHelpers.awardPoints(state, context.triggeredBy, 10);\n  }\n  return state;\n}",
+      "isActive": true,
+      "isMutable": false,
+      "proposedBy": "system",
+      "createdAt": 1773703854545,
+      "triggers": [
+        {
+          "type": "event",
+          "eventType": "proposal-passed"
+        }
+      ]
+    },
+    {
+      "id": "11fdcfb9af6b8c3baee5645023f59cda",
+      "number": 101,
+      "name": "Win by Points",
+      "description": "The first player to reach 100 points wins the game.",
+      "code": "(state) => {\n  for (const [playerId, points] of state.points.entries()) {\n    if (points >= 100) {\n      return { ...state, status: 'completed' };\n    }\n  }\n  return state;\n}",
+      "isActive": true,
+      "isMutable": true,
+      "proposedBy": "system",
+      "createdAt": 1773703854545,
+      "triggers": [
+        {
+          "type": "event",
+          "eventType": "turn-end"
+        }
+      ]
+    },
+    {
+      "id": "8ab1b431a4296d95da36eed9cffe8847",
+      "number": 201,
+      "name": "House Rule",
+      "description": "An informational rule with no automatic effect",
+      "code": "(state) => state",
+      "isActive": true,
+      "isMutable": true,
+      "proposedBy": "27e5e15d53f8e6eca058f5bea779aa89",
+      "createdAt": 1773703854546,
+      "triggers": [
+        {
+          "type": "never"
+        }
+      ]
+    }
+  ],
+  "turns": {
+    "currentTurn": 1,
+    "currentPlayerId": "27e5e15d53f8e6eca058f5bea779aa89",
+    "turnOrder": [
+      "27e5e15d53f8e6eca058f5bea779aa89",
+      "a9aaace6f8cfd24724654c4efd4accae",
+      "95f98e3c79b135bcd74462bf82adc5ab"
+    ],
+    "turnStartedAt": 1773703854545,
+    "turnHistory": []
+  },
+  "voting": {
+    "activeProposals": [],
+    "proposalHistory": [
+      {
+        "id": "fc09ae5c3cbd850fca42ffbcbd02f4ea",
+        "type": "add-rule",
+        "proposedBy": "27e5e15d53f8e6eca058f5bea779aa89",
+        "proposedAt": 1773703854546,
+        "rule": {
+          "id": "8ab1b431a4296d95da36eed9cffe8847",
+          "number": 201,
+          "name": "House Rule",
+          "description": "An informational rule with no automatic effect",
+          "code": "(state) => state",
+          "isActive": false,
+          "isMutable": true,
+          "proposedBy": "27e5e15d53f8e6eca058f5bea779aa89",
+          "createdAt": 1773703854546,
+          "triggers": [
+            {
+              "type": "never"
+            }
+          ]
+        },
+        "description": "House Rule",
+        "votes": [
+          [
+            "27e5e15d53f8e6eca058f5bea779aa89",
+            {
+              "playerId": "27e5e15d53f8e6eca058f5bea779aa89",
+              "value": "yes",
+              "votedAt": 1773703854546
+            }
+          ],
+          [
+            "a9aaace6f8cfd24724654c4efd4accae",
+            {
+              "playerId": "a9aaace6f8cfd24724654c4efd4accae",
+              "value": "yes",
+              "votedAt": 1773703854546
+            }
+          ],
+          [
+            "95f98e3c79b135bcd74462bf82adc5ab",
+            {
+              "playerId": "95f98e3c79b135bcd74462bf82adc5ab",
+              "value": "yes",
+              "votedAt": 1773703854546
+            }
+          ]
+        ],
+        "status": "passed",
+        "resolvedAt": 1773703854546
+      }
+    ]
+  },
+  "history": [
+    {
+      "id": "34c8d007f37564fea36e753e9700d66c",
+      "timestamp": 1773703854545,
+      "type": "game-created",
+      "actorId": "system",
+      "data": {
+        "gameId": "cb4326eb78814031ce706fade3392381"
+      }
+    },
+    {
+      "id": "78632d7163de8e99535c1abf95b9698c",
+      "timestamp": 1773703854545,
+      "type": "player-joined",
+      "actorId": "27e5e15d53f8e6eca058f5bea779aa89",
+      "data": {
+        "playerId": "27e5e15d53f8e6eca058f5bea779aa89",
+        "name": "Alice"
+      }
+    },
+    {
+      "id": "881b3cfa07ec2d8d939abe1d55bdb423",
+      "timestamp": 1773703854545,
+      "type": "player-joined",
+      "actorId": "a9aaace6f8cfd24724654c4efd4accae",
+      "data": {
+        "playerId": "a9aaace6f8cfd24724654c4efd4accae",
+        "name": "Bob"
+      }
+    },
+    {
+      "id": "0af65ec278500829747e92a90f7e3ecd",
+      "timestamp": 1773703854545,
+      "type": "player-joined",
+      "actorId": "95f98e3c79b135bcd74462bf82adc5ab",
+      "data": {
+        "playerId": "95f98e3c79b135bcd74462bf82adc5ab",
+        "name": "Charlie"
+      }
+    },
+    {
+      "id": "660465bee3e00fa89ca10ec5169e2b5c",
+      "timestamp": 1773703854545,
+      "type": "turn-started",
+      "actorId": "system",
+      "data": {
+        "turnNumber": 1,
+        "playerId": "27e5e15d53f8e6eca058f5bea779aa89"
+      }
+    },
+    {
+      "id": "f6dd25a5ed7edf71a8345fb3f4fdd6c5",
+      "timestamp": 1773703854546,
+      "type": "proposal-created",
+      "actorId": "27e5e15d53f8e6eca058f5bea779aa89",
+      "data": {
+        "proposalId": "fc09ae5c3cbd850fca42ffbcbd02f4ea",
+        "type": "add-rule",
+        "description": "House Rule",
+        "ruleNumber": 201
+      }
+    },
+    {
+      "id": "7a850814496a6550b60a4a4991ba6980",
+      "timestamp": 1773703854546,
+      "type": "vote-cast",
+      "actorId": "27e5e15d53f8e6eca058f5bea779aa89",
+      "data": {
+        "proposalId": "fc09ae5c3cbd850fca42ffbcbd02f4ea",
+        "vote": "yes"
+      }
+    },
+    {
+      "id": "c450a3d5e0b75aafc2442769347d9715",
+      "timestamp": 1773703854546,
+      "type": "vote-cast",
+      "actorId": "a9aaace6f8cfd24724654c4efd4accae",
+      "data": {
+        "proposalId": "fc09ae5c3cbd850fca42ffbcbd02f4ea",
+        "vote": "yes"
+      }
+    },
+    {
+      "id": "af17af88f821bcd3ae2b9cae11808fe8",
+      "timestamp": 1773703854546,
+      "type": "vote-cast",
+      "actorId": "95f98e3c79b135bcd74462bf82adc5ab",
+      "data": {
+        "proposalId": "fc09ae5c3cbd850fca42ffbcbd02f4ea",
+        "vote": "yes"
+      }
+    },
+    {
+      "id": "b44d07b49e37a4062cf69e0562541607",
+      "timestamp": 1773703854546,
+      "type": "proposal-resolved",
+      "actorId": "system",
+      "data": {
+        "proposalId": "fc09ae5c3cbd850fca42ffbcbd02f4ea",
+        "status": "passed",
+        "yesVotes": 3,
+        "noVotes": 0,
+        "abstainVotes": 0
+      }
+    },
+    {
+      "id": "a4ea5568afcbb9ef029771a2266f574b",
+      "timestamp": 1773703854551,
+      "type": "points-awarded",
+      "actorId": "system",
+      "data": {
+        "playerId": "27e5e15d53f8e6eca058f5bea779aa89",
+        "amount": 10,
+        "newTotal": 10
+      }
+    },
+    {
+      "id": "d0bb1241ff4da997dd1a225fb9391343",
+      "timestamp": 1773703854546,
+      "type": "rule-executed",
+      "actorId": "27e5e15d53f8e6eca058f5bea779aa89",
+      "data": {
+        "ruleId": "5a163dbb9b31ed847d1c8b04840630b7",
+        "ruleNumber": 4,
+        "ruleName": "Points for Adopted Rules"
+      }
+    }
+  ],
+  "extensions": []
+}

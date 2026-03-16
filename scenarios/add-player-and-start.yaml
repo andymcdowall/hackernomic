@@ -1,0 +1,13 @@
+name: "Setup - add players and start game"
+description: >
+  From an empty setup state, add two players and start the game.
+  The game should transition to active status.
+
+fixture: fixtures/game-setup-3-players.json
+
+actions:
+  - type: start
+    expect_output:
+      - "Game started"
+    expect_state:
+      status: active

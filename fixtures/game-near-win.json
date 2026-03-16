@@ -1,0 +1,237 @@
+{
+  "version": "1.0.0",
+  "gameId": "7bce7cdc9c91451822c705da64398e65",
+  "createdAt": 1773703854544,
+  "updatedAt": 1773703854544,
+  "status": "active",
+  "players": [
+    {
+      "id": "c3682a0545299d8a42df075b0561a9cf",
+      "name": "Alice",
+      "joinedAt": 1773703854544,
+      "isActive": true
+    },
+    {
+      "id": "0d39ccd8b6959a451558286df4b4018d",
+      "name": "Bob",
+      "joinedAt": 1773703854544,
+      "isActive": true
+    },
+    {
+      "id": "45443b5f7b0437359fdd0759cd7e0b17",
+      "name": "Charlie",
+      "joinedAt": 1773703854544,
+      "isActive": true
+    }
+  ],
+  "points": [
+    [
+      "c3682a0545299d8a42df075b0561a9cf",
+      25
+    ],
+    [
+      "0d39ccd8b6959a451558286df4b4018d",
+      0
+    ],
+    [
+      "45443b5f7b0437359fdd0759cd7e0b17",
+      0
+    ]
+  ],
+  "rules": [
+    {
+      "id": "9d1c8b604aab339e9a73aa02b3c50562",
+      "number": 1,
+      "name": "Sequential Turn Order",
+      "description": "Players take turns in sequential order.",
+      "code": "// Enforced by turn management system",
+      "isActive": true,
+      "isMutable": false,
+      "proposedBy": "system",
+      "createdAt": 1773703854544,
+      "triggers": [
+        {
+          "type": "never"
+        }
+      ]
+    },
+    {
+      "id": "f65c6486bc4551964cca0ef54ba3e470",
+      "number": 2,
+      "name": "One Proposal Per Turn",
+      "description": "Each player may propose one rule per turn.",
+      "code": "// Enforced by voting system",
+      "isActive": true,
+      "isMutable": false,
+      "proposedBy": "system",
+      "createdAt": 1773703854544,
+      "triggers": [
+        {
+          "type": "never"
+        }
+      ]
+    },
+    {
+      "id": "d0444971b87a5ff09cec2232cd2c051c",
+      "number": 3,
+      "name": "Majority Vote",
+      "description": "A proposed rule is adopted if and only if a majority of players vote yes.",
+      "code": "// Implemented in voting system",
+      "isActive": true,
+      "isMutable": false,
+      "proposedBy": "system",
+      "createdAt": 1773703854544,
+      "triggers": [
+        {
+          "type": "never"
+        }
+      ]
+    },
+    {
+      "id": "8bc1320aef8cc592e7547588a060e3c0",
+      "number": 4,
+      "name": "Points for Adopted Rules",
+      "description": "When a rule is adopted, its proposer gains 10 points.",
+      "code": "(state, context) => {\n  // Award 10 points to the proposer when a rule is adopted\n  if (context.triggeredBy) {\n    return StateHelpers.awardPoints(state, context.triggeredBy, 10);\n  }\n  return state;\n}",
+      "isActive": true,
+      "isMutable": false,
+      "proposedBy": "system",
+      "createdAt": 1773703854544,
+      "triggers": [
+        {
+          "type": "event",
+          "eventType": "proposal-passed"
+        }
+      ]
+    },
+    {
+      "id": "5073c88ab46084c9521867aa6e74847f",
+      "number": 101,
+      "name": "Win by Points",
+      "description": "The first player to reach 100 points wins the game.",
+      "code": "(state) => {\n  for (const [playerId, points] of state.points.entries()) {\n    if (points >= 100) {\n      return { ...state, status: 'completed' };\n    }\n  }\n  return state;\n}",
+      "isActive": true,
+      "isMutable": true,
+      "proposedBy": "system",
+      "createdAt": 1773703854544,
+      "triggers": [
+        {
+          "type": "event",
+          "eventType": "turn-end"
+        }
+      ]
+    },
+    {
+      "id": "a19f93452fa36b13d7b896c49c23591b",
+      "number": 202,
+      "name": "Award Turn Points",
+      "description": "Awards 5 points to the player who just ended their turn",
+      "code": "(state, context) => {\n  if (context.triggeredBy && context.triggeredBy !== 'system') {\n    return StateHelpers.awardPoints(state, context.triggeredBy, 5);\n  }\n  return state;\n}",
+      "isActive": true,
+      "isMutable": true,
+      "proposedBy": "system",
+      "createdAt": 1773703854544,
+      "triggers": [
+        {
+          "type": "event",
+          "eventType": "turn-end"
+        }
+      ]
+    },
+    {
+      "id": "819374bb5a42b9a4e46f3ec4b277ae86",
+      "number": 203,
+      "name": "Win at 30 Points",
+      "description": "The first player to reach 30 points wins the game",
+      "code": "(state) => {\n  for (const [playerId, points] of state.points.entries()) {\n    if (points >= 30) {\n      return { ...state, status: 'completed' };\n    }\n  }\n  return state;\n}",
+      "isActive": true,
+      "isMutable": true,
+      "proposedBy": "system",
+      "createdAt": 1773703854544,
+      "triggers": [
+        {
+          "type": "event",
+          "eventType": "turn-end"
+        }
+      ]
+    }
+  ],
+  "turns": {
+    "currentTurn": 1,
+    "currentPlayerId": "c3682a0545299d8a42df075b0561a9cf",
+    "turnOrder": [
+      "c3682a0545299d8a42df075b0561a9cf",
+      "0d39ccd8b6959a451558286df4b4018d",
+      "45443b5f7b0437359fdd0759cd7e0b17"
+    ],
+    "turnStartedAt": 1773703854544,
+    "turnHistory": []
+  },
+  "voting": {
+    "activeProposals": [],
+    "proposalHistory": []
+  },
+  "history": [
+    {
+      "id": "47f72f0d09f1991682ecf83a6d29a987",
+      "timestamp": 1773703854544,
+      "type": "game-created",
+      "actorId": "system",
+      "data": {
+        "gameId": "7bce7cdc9c91451822c705da64398e65"
+      }
+    },
+    {
+      "id": "1118cbc9e7cf4ac5fa2da41b926eb1a0",
+      "timestamp": 1773703854544,
+      "type": "player-joined",
+      "actorId": "c3682a0545299d8a42df075b0561a9cf",
+      "data": {
+        "playerId": "c3682a0545299d8a42df075b0561a9cf",
+        "name": "Alice"
+      }
+    },
+    {
+      "id": "87116e1b286565cc9b290ebeb2e64794",
+      "timestamp": 1773703854544,
+      "type": "player-joined",
+      "actorId": "0d39ccd8b6959a451558286df4b4018d",
+      "data": {
+        "playerId": "0d39ccd8b6959a451558286df4b4018d",
+        "name": "Bob"
+      }
+    },
+    {
+      "id": "d3fbeaa28f1c0c423254371a18386bac",
+      "timestamp": 1773703854544,
+      "type": "player-joined",
+      "actorId": "45443b5f7b0437359fdd0759cd7e0b17",
+      "data": {
+        "playerId": "45443b5f7b0437359fdd0759cd7e0b17",
+        "name": "Charlie"
+      }
+    },
+    {
+      "id": "75472badf4cf22a1c53a33b19b254667",
+      "timestamp": 1773703854544,
+      "type": "turn-started",
+      "actorId": "system",
+      "data": {
+        "turnNumber": 1,
+        "playerId": "c3682a0545299d8a42df075b0561a9cf"
+      }
+    },
+    {
+      "id": "054ab931b2dad079b89be662e98aeec0",
+      "timestamp": 1773703854544,
+      "type": "points-awarded",
+      "actorId": "system",
+      "data": {
+        "playerId": "c3682a0545299d8a42df075b0561a9cf",
+        "amount": 25,
+        "newTotal": 25
+      }
+    }
+  ],
+  "extensions": []
+}

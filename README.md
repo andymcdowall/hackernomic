@@ -305,6 +305,7 @@ nomic-engine/
 │   │   └── transitions.ts    # State validation
 │   ├── rules/
 │   │   ├── executor.ts       # Rule execution
+│   │   ├── dispatcher.ts     # Event dispatcher
 │   │   └── composition.ts    # Rule composition
 │   ├── sandbox/
 │   │   └── runtime.ts        # Secure sandbox
@@ -313,7 +314,16 @@ nomic-engine/
 │   │   └── storage.ts        # File I/O
 │   ├── cli/
 │   │   └── index.ts          # CLI interface
+│   ├── e2e-testing/
+│   │   └── cli/
+│   │       ├── types.ts          # YAML scenario schema types
+│   │       ├── premade-rules.ts  # Pre-built rules for testing
+│   │       ├── fixture-factory.ts # Creates fixture game states
+│   │       ├── scenario-runner.ts # Drives CLI via stdin/stdout
+│   │       └── e2e.test.ts       # Vitest E2E entry point
 │   └── index.ts              # Main export
+├── fixtures/                 # Pre-built game states for E2E tests
+├── scenarios/                # YAML E2E test scenarios
 └── examples/
     └── initial-rules.ts      # Example rules
 ```
@@ -336,6 +346,118 @@ npm run typecheck
 # Development mode
 npm run dev
 ```
+
+## E2E Testing
+
+The engine has an end-to-end test harness that drives the interactive CLI via
+stdin/stdout. Each test loads a pre-built fixture, spawns `nomic play`, and
+asserts on the output.
+
+### How to run
+
+```bash
+npm test                              # unit tests + E2E tests
+npx vitest src/e2e-testing           # E2E tests only
+npm run generate-fixtures            # rebuild fixture JSON files
+```
+
+### How to write a scenario
+
+Create a `.yaml` file in `scenarios/`. It is auto-discovered by the test runner.
+
+```yaml
+name: "Short human-readable test name"
+description: "Optional longer explanation"
+
+fixture: fixtures/game-active-3-players.json   # pre-built game state
+
+actions:
+  - type: propose
+    rule:
+      name: "My Rule"
+      description: "Does something cool"
+      code: "(state) => state"
+      trigger: "turn-end"          # 'turn-end', 'never', or custom event type
+    votes:
+      Alice: yes
+      Bob: yes
+      Charlie: no
+    expect_output:
+      - "Proposal PASSED"
+    expect_not_output:
+      - "Proposal FAILED"
+    expect_state:
+      adopted_proposals: 1
+      pending_proposals: 0
+```
+
+### Action reference
+
+| Action type | Required fields | What it tests |
+|------------|----------------|---------------|
+| `add_player` | `name` | Player creation during setup |
+| `start` | — | Game start transition |
+| `propose` | `rule`, `votes` | Rule proposal + full voting phase |
+| `vote` | `on`, `player`, `value` | Individual vote on existing proposal |
+| `end_turn` | — | Turn advancement + event dispatch |
+| `save` | — | Persistence |
+| `status` | — | Read-only status output |
+| `rules` | — | Read-only rule listing |
+| `leaderboard` | — | Read-only standings |
+| `show_state` | — | Read-only full state JSON |
+
+The `propose` action drives the **complete voting phase** — all players vote inline:
+
+```yaml
+- type: propose
+  rule: "award_turn_points"    # premade rule key, or inline rule spec
+  votes:
+    Alice: yes
+    Bob: no
+    Charlie: yes
+```
+
+### Assertion reference
+
+All assertion fields are optional:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `expect_output` | `string \| string[]` | Substrings that must appear in output |
+| `expect_not_output` | `string \| string[]` | Substrings that must NOT appear in output |
+| `expect_state` | object | Structured state assertions (see below) |
+
+**`expect_state` fields:**
+
+| Field | Description |
+|-------|-------------|
+| `status` | `"setup"`, `"active"`, or `"completed"` |
+| `current_player` | Player name whose turn it currently is |
+| `turn_number` | Current turn number |
+| `points` | Map of `{PlayerName: N}` exact point values |
+| `active_rule_count` | Number of active rules |
+| `pending_proposals` | Number of proposals awaiting votes |
+| `adopted_proposals` | Number of proposals that passed |
+| `rejected_proposals` | Number of proposals that failed |
+
+### Adding a scenario
+
+1. Create `scenarios/my-scenario.yaml` using the schema above
+2. Run `npm test` — the file is auto-discovered
+
+### Adding or modifying fixtures
+
+Fixtures are JSON snapshots of game states built programmatically by
+`src/e2e-testing/cli/fixture-factory.ts`. They are committed to the repo.
+
+Re-run the factory whenever the game state format changes:
+
+```bash
+npm run generate-fixtures
+```
+
+To add a new fixture, add a creator function in `fixture-factory.ts` and
+call it from `generateAllFixtures()`.
 
 ## Architecture Decisions
 
