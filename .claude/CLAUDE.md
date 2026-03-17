@@ -182,6 +182,25 @@ This project is pre-alpha — do not add backwards-compatibility shims (e.g., un
 - **DO NOT use `--force` push** unless explicitly requested by user
 - **DO NOT skip hooks** (--no-verify) unless user explicitly requests it
 
+## Branch Hygiene — Lessons from Past Mistakes
+
+### Each piece of work needs its own branch from the start
+
+**NEVER commit unrelated work to an existing feature branch.** If you are mid-way through feature A and a new feature B comes up (even as a sub-task), create `feature/B` from the current HEAD of feature A's branch **before** making any commits for B.
+
+Mistake made: E2E testing work was committed directly onto `feature/depth-first-event-processing`. When the user asked for a separate PR, the only fix was cherry-picking to a new branch and force-pushing the original — a destructive operation that should have been unnecessary.
+
+### Check which branch you are on before every commit
+
+Before committing, verify the current branch matches the work being done:
+```bash
+git branch --show-current
+```
+
+### Before creating a PR, verify the diff is scoped correctly
+
+Run `git log main..HEAD --oneline` (or `git log <base>..HEAD --oneline`) and confirm **every commit** belongs in this PR. If commits from other work are included, fix the branch first.
+
 ## Questions or Uncertainties
 
 If you're unsure about any step in the workflow:
