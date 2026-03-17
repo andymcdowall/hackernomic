@@ -92,6 +92,7 @@ After PR is created:
   - Update tests if needed
   - Commit with descriptive messages referencing the feedback
   - Push changes (they automatically update the PR)
+  - **Reply to every PR comment** after addressing it, appending ` -Claude` to the message
 - Request re-review if significant changes were made
 
 ## Branch Naming Conventions
@@ -133,6 +134,14 @@ Follow conventional commit format:
 - [ ] All changes committed
 - [ ] Branch pushed to origin
 
+## Code Design Principles
+
+### Single Responsibility Principle (SRP)
+Extract logic into separate functions when a function is doing more than one distinct operation. For example, a function that collects user input AND orchestrates a multi-step process should be split: one function gathers input and creates the entity, another drives the follow-on process (e.g., voting). Each function should do one "thing."
+
+### No Backwards Compatibility in Pre-Alpha
+This project is pre-alpha — do not add backwards-compatibility shims (e.g., union-type constructor signatures, legacy overloads). Just change the API directly. However, tests should be written to be **schema-resilient**: avoid hardcoding internal field names or structure that is likely to change; test observable behavior instead.
+
 ## Important Notes
 
 - **NEVER create a PR without user confirmation**
@@ -151,4 +160,4 @@ If you're unsure about any step in the workflow:
 
 ---
 
-Last updated: 2026-03-02
+Last updated: 2026-03-16

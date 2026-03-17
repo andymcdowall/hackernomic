@@ -44,27 +44,12 @@ export class NomicEngine {
    * Create a new Nomic Engine instance
    * @param options - Optional configuration and initial state
    */
-  constructor(options?: GameState | NomicEngineOptions) {
-    // Support both old signature (state) and new signature (options)
-    if (options && 'gameId' in options) {
-      // Old signature: constructor(state?: GameState)
-      this.state = options;
-    } else if (options && 'state' in options) {
-      // New signature: constructor(options?: NomicEngineOptions)
-      this.state = options.state || createInitialState(generateId());
-    } else {
-      // No arguments
-      this.state = createInitialState(generateId());
-    }
-
+  constructor(options?: NomicEngineOptions) {
+    this.state = options?.state ?? createInitialState(generateId());
     this.turnManager = new TurnManager();
     this.votingManager = new VotingManager();
     this.ruleExecutor = new RuleExecutor();
-
-    // Extract dispatcher config if using new options signature
-    const dispatcherConfig =
-      options && 'dispatcherConfig' in options ? options.dispatcherConfig : undefined;
-    this.eventDispatcher = new EventDispatcher(this.ruleExecutor, dispatcherConfig);
+    this.eventDispatcher = new EventDispatcher(this.ruleExecutor, options?.dispatcherConfig);
   }
 
   // ========================================================================
@@ -442,7 +427,7 @@ export class NomicEngine {
   static async load(filepath: string): Promise<NomicEngine> {
     const storage = new GameStorage();
     const state = await storage.load(filepath);
-    return new NomicEngine(state);
+    return new NomicEngine({ state });
   }
 
   /**
@@ -479,6 +464,6 @@ export class NomicEngine {
         })),
       },
     };
-    return new NomicEngine(state);
+    return new NomicEngine({ state });
   }
 }

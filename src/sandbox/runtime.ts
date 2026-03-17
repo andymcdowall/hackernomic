@@ -151,7 +151,9 @@ export class RuleSandbox {
   }
 
   /**
-   * JSON reviver to restore Maps
+   * JSON reviver — counterpart to mapReplacer. Restores Map objects that were
+   * serialized as { __type: 'Map', value: [...entries] } back into real Maps,
+   * so the cloned state has the same structure (Maps intact) as the original.
    */
   private mapReviver(_key: string, value: any): any {
     if (value && value.__type === 'Map') {

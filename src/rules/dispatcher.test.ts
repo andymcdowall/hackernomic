@@ -445,6 +445,58 @@ describe('EventDispatcher - Depth-first execution', () => {
     expect(executionOrder[100]).toBe(249); // Last of branch B
   });
 
+  it('Test 8b: custom config — should enforce lower maxEventDepth', () => {
+    const recursiveEvent: GameEvent = {
+      type: 'recursive',
+      actorId: 'test',
+      timestamp: Date.now(),
+    };
+
+    const rules: Rule[] = [createTrackingRule(1, 'recursive')];
+    mockExecutor.setEmissions(1, [recursiveEvent]);
+
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const customDispatcher = new EventDispatcher(mockExecutor as any, { maxEventDepth: 5 });
+    const state = createTestState(rules);
+    const stateWithEvent = updateState(state, draft => {
+      (draft.pendingEvents as GameEvent[]).push(recursiveEvent);
+    });
+
+    customDispatcher.processEvents(stateWithEvent);
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Max event depth (5) reached'));
+    expect(executionOrder.length).toBe(5);
+  });
+
+  it('Test 8c: custom config — should enforce lower maxTotalNodes', () => {
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const rootEvent: GameEvent = { type: 'root', actorId: 'test', timestamp: Date.now() };
+    const childEvents: GameEvent[] = Array.from({ length: 25 }, (_, i) => ({
+      type: `child-${i}`,
+      actorId: 'test',
+      timestamp: Date.now(),
+    }));
+
+    const rules: Rule[] = [createTrackingRule(1, 'root')];
+    for (let i = 0; i < 25; i++) {
+      rules.push(createTrackingRule(i + 10, `child-${i}`));
+    }
+    mockExecutor.setEmissions(1, childEvents);
+
+    const customDispatcher = new EventDispatcher(mockExecutor as any, { maxTotalNodes: 20 });
+    const state = createTestState(rules);
+    const stateWithEvent = updateState(state, draft => {
+      (draft.pendingEvents as GameEvent[]).push(rootEvent);
+    });
+
+    customDispatcher.processEvents(stateWithEvent);
+
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Max total nodes (20) reached'));
+    expect(executionOrder.length).toBeLessThanOrEqual(20);
+  });
+
   it('Test 9: should sort initial events by rule number, not event order', () => {
     // Setup: Multiple initial events in pendingEvents
     // event-a comes first in array but triggers Rule 102

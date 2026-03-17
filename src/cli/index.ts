@@ -427,7 +427,15 @@ async function proposeRule(engine: NomicEngine, rl: readline.Interface): Promise
   console.log(`\n✓ Proposal created: ${proposalId.slice(0, 8)}...`);
   console.log(`  Rule ${nextNumber}: ${name.trim()}`);
 
-  // Immediately start voting
+  await conductVoting(engine, rl, proposalId, nextNumber);
+}
+
+async function conductVoting(
+  engine: NomicEngine,
+  rl: readline.Interface,
+  proposalId: string,
+  ruleNumber: number
+): Promise<void> {
   console.log('\n--- Voting Phase ---');
   const players = engine.getPlayers();
 
@@ -447,13 +455,12 @@ async function proposeRule(engine: NomicEngine, rl: readline.Interface): Promise
     console.log(`✓ ${player.name} voted: ${voteValue}`);
   }
 
-  // Proposal will auto-resolve after all votes are in
   console.log('\n--- Voting Complete ---');
   const proposal = engine.getProposal(proposalId);
   if (proposal) {
     console.log(`Proposal ${proposal.status === 'passed' ? 'PASSED' : 'FAILED'}`);
     if (proposal.status === 'passed') {
-      console.log(`✓ Rule ${nextNumber} is now active!`);
+      console.log(`✓ Rule ${ruleNumber} is now active!`);
     }
   }
 }
