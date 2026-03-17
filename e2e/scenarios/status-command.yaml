@@ -1,0 +1,16 @@
+name: "Status command shows players and game info"
+description: >
+  The status command should display current game status, all player names,
+  and summary counts for proposals and rules.
+
+fixture: e2e/fixtures/game-active-3-players.json
+
+actions:
+  - type: status
+    expect_output:
+      - "Game Status"
+      - "Alice"
+      - "Bob"
+      - "Charlie"
+      - "Active proposals"
+      - "Active rules"

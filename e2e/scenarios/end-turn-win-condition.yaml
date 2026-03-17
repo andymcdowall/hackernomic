@@ -1,0 +1,14 @@
+name: "End turn - triggers win condition"
+description: >
+  Alice has 25 points. Rule 202 awards 5 points on turn-end (bringing her to 30).
+  Rule 203 then checks if any player has 30+ points and sets status to completed.
+  Ending Alice's turn should trigger the win condition.
+
+fixture: e2e/fixtures/game-near-win.json
+
+actions:
+  - type: end_turn
+    expect_output:
+      - "Turn ended"
+    expect_state:
+      status: completed

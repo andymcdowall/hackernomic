@@ -1,0 +1,25 @@
+name: "Propose rule - majority no - proposal fails"
+description: >
+  When a majority of players vote no, the proposal should fail and
+  the rule should NOT become active.
+
+fixture: e2e/fixtures/game-active-3-players.json
+
+actions:
+  - type: propose
+    rule:
+      name: "Award Turn Points"
+      description: "Awards 5 points to current player on turn end"
+      code: "(state, context) => { const p = StateHelpers.getCurrentPlayer(state); if (p) return StateHelpers.awardPoints(state, p.id, 5); return state; }"
+      trigger: "turn-end"
+    votes:
+      Alice: yes
+      Bob: no
+      Charlie: no
+    expect_output:
+      - "Proposal FAILED"
+    expect_not_output:
+      - "is now active"
+    expect_state:
+      pending_proposals: 0
+      rejected_proposals: 1

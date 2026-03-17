@@ -38,11 +38,41 @@ git checkout -b feature/<description>
 
 ### 4. End-to-End Testing (if applicable)
 
-If the feature involves user-facing functionality or integration between multiple systems:
-- Create an E2E test script in the project root (e.g., `test-<feature-name>.js`)
-- Test the feature in a realistic scenario
-- Verify expected behavior and outputs
-- Document the test scenario in comments
+If the feature involves user-facing CLI functionality or integration between multiple systems,
+add a YAML scenario to `e2e/scenarios/`. The harness in `src/e2e-testing/cli/` spawns
+`nomic play <fixture>` and drives it via stdin/stdout.
+
+**Adding a scenario:**
+1. Create `e2e/scenarios/<name>.yaml` — auto-discovered by Vitest
+2. If you need a new fixture state, add a creator in `src/e2e-testing/cli/fixture-factory.ts`
+   and run `npm run generate-fixtures`
+3. Run `npm test` to verify
+
+**Scenario schema:**
+```yaml
+name: "Human-readable test name"
+fixture: e2e/fixtures/<state>.json
+
+actions:
+  - type: propose | vote | end_turn | start | add_player | status | rules | leaderboard | show_state | save
+    # type-specific fields (see README E2E Testing section)
+    expect_output:
+      - "substring that must appear"
+    expect_not_output:
+      - "substring that must not appear"
+    expect_state:
+      status: active | completed | setup
+      current_player: Alice
+      points: { Alice: 10 }
+      adopted_proposals: 1
+```
+
+**Key files:**
+- `e2e/fixtures/` — pre-built game state JSON files (committed)
+- `e2e/scenarios/` — YAML test scenarios (committed)
+- `src/e2e-testing/cli/fixture-factory.ts` — builds fixtures via engine API
+- `src/e2e-testing/cli/scenario-runner.ts` — CLI stdin/stdout driver
+- `src/e2e-testing/cli/premade-rules.ts` — reusable rule specs for scenarios
 
 ### 5. User Confirmation
 
@@ -121,9 +151,10 @@ Follow conventional commit format:
 - **Run**: `npm test`
 
 ### E2E Tests
-- **Location**: Project root with descriptive name
-- **When**: User-facing features or cross-system integration
-- **Run**: `node test-<feature>.js`
+- **Location**: `e2e/scenarios/*.yaml` (auto-discovered)
+- **Fixtures**: `e2e/fixtures/*.json` — regenerate with `npm run generate-fixtures`
+- **When**: User-facing CLI features or cross-system integration
+- **Run**: `npm test` (included automatically) or `npx vitest src/e2e-testing`
 
 ### Pre-PR Checklist
 - [ ] All unit tests pass
@@ -150,6 +181,25 @@ This project is pre-alpha — do not add backwards-compatibility shims (e.g., un
 - **DO NOT push to main/master directly** - all changes go through PRs
 - **DO NOT use `--force` push** unless explicitly requested by user
 - **DO NOT skip hooks** (--no-verify) unless user explicitly requests it
+
+## Branch Hygiene — Lessons from Past Mistakes
+
+### Each piece of work needs its own branch from the start
+
+**NEVER commit unrelated work to an existing feature branch.** If you are mid-way through feature A and a new feature B comes up (even as a sub-task), create `feature/B` from the current HEAD of feature A's branch **before** making any commits for B.
+
+Mistake made: E2E testing work was committed directly onto `feature/depth-first-event-processing`. When the user asked for a separate PR, the only fix was cherry-picking to a new branch and force-pushing the original — a destructive operation that should have been unnecessary.
+
+### Check which branch you are on before every commit
+
+Before committing, verify the current branch matches the work being done:
+```bash
+git branch --show-current
+```
+
+### Before creating a PR, verify the diff is scoped correctly
+
+Run `git log main..HEAD --oneline` (or `git log <base>..HEAD --oneline`) and confirm **every commit** belongs in this PR. If commits from other work are included, fix the branch first.
 
 ## Questions or Uncertainties
 
