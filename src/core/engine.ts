@@ -14,31 +14,42 @@ import type {
   VoteValue,
   VotingRules,
 } from './types.js';
-import { addPlayer, createInitialState, generateId } from './state.js';
+import { addPlayer, createInitialState, emitSystemEvent, generateId } from './state.js';
 import { TurnManager } from '../systems/turn.js';
 import { VotingManager } from '../systems/voting.js';
 import { RuleExecutor } from '../rules/executor.js';
+import {
+  EventDispatcher,
+  type EventDispatcherConfig,
+} from '../rules/dispatcher.js';
 import { GameStorage } from '../persistence/storage.js';
 
 // ============================================================================
 // Nomic Engine
 // ============================================================================
 
+export interface NomicEngineOptions {
+  state?: GameState;
+  dispatcherConfig?: Partial<EventDispatcherConfig>;
+}
+
 export class NomicEngine {
   private state: GameState;
   private turnManager: TurnManager;
   private votingManager: VotingManager;
   private ruleExecutor: RuleExecutor;
+  private eventDispatcher: EventDispatcher;
 
   /**
    * Create a new Nomic Engine instance
-   * @param state - Optional initial state (for loading saved games)
+   * @param options - Optional configuration and initial state
    */
-  constructor(state?: GameState) {
-    this.state = state || createInitialState(generateId());
+  constructor(options?: NomicEngineOptions) {
+    this.state = options?.state ?? createInitialState(generateId());
     this.turnManager = new TurnManager();
     this.votingManager = new VotingManager();
     this.ruleExecutor = new RuleExecutor();
+    this.eventDispatcher = new EventDispatcher(this.ruleExecutor, options?.dispatcherConfig);
   }
 
   // ========================================================================
@@ -118,10 +129,16 @@ export class NomicEngine {
    * End the current turn and advance to next player
    */
   endTurn(actions: ReadonlyArray<Action> = []): void {
+    const currentPlayerId = this.state.turns.currentPlayerId || 'system';
+
+    // Advance turn
     this.state = this.turnManager.endTurn(this.state, actions);
 
-    // After ending turn, check win conditions
-    this.state = this.ruleExecutor.checkWinConditions(this.state);
+    // Emit turn-end event
+    this.state = emitSystemEvent(this.state, 'turn-end', currentPlayerId);
+
+    // Process all events (this will trigger rules with turn-end trigger)
+    this.state = this.eventDispatcher.processEvents(this.state);
   }
 
   /**
@@ -157,6 +174,13 @@ export class NomicEngine {
    */
   resume(): void {
     this.state = this.turnManager.resumeGame(this.state);
+  }
+
+  /**
+   * Process any pending events
+   */
+  processEvents(): void {
+    this.state = this.eventDispatcher.processEvents(this.state);
   }
 
   // ========================================================================
@@ -252,6 +276,9 @@ export class NomicEngine {
       proposalId,
       votingRules
     );
+
+    // Process any events that were emitted (e.g., proposal-passed)
+    this.state = this.eventDispatcher.processEvents(this.state);
   }
 
   /**
@@ -400,7 +427,7 @@ export class NomicEngine {
   static async load(filepath: string): Promise<NomicEngine> {
     const storage = new GameStorage();
     const state = await storage.load(filepath);
-    return new NomicEngine(state);
+    return new NomicEngine({ state });
   }
 
   /**
@@ -437,6 +464,6 @@ export class NomicEngine {
         })),
       },
     };
-    return new NomicEngine(state);
+    return new NomicEngine({ state });
   }
 }

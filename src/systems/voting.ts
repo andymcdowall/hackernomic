@@ -15,7 +15,7 @@ import type {
   VoteValue,
   VotingRules,
 } from '../core/types.js';
-import { addRule, awardPoints, generateId, updateState } from '../core/state.js';
+import { addRule, emitSystemEvent, generateId, updateState } from '../core/state.js';
 
 // ============================================================================
 // Voting Manager
@@ -51,6 +51,17 @@ export class VotingManager {
       throw new Error(`Player ${proposedBy} is not active`);
     }
 
+    // Rule 2: One Proposal Per Turn
+    // Check if any active proposal was created by this player after the current turn started
+    const turnStartTime = state.turns.turnStartedAt || 0;
+    const hasActiveProposalThisTurn = state.voting.activeProposals.some(
+      p => p.proposedBy === proposedBy && p.proposedAt >= turnStartTime
+    );
+
+    if (hasActiveProposalThisTurn) {
+      throw new Error('Rule 2: Only one proposal per turn is allowed');
+    }
+
     // For modify/remove proposals, rule is required
     if ((type === 'modify-rule' || type === 'remove-rule') && !rule) {
       throw new Error(`Rule is required for ${type} proposals`);
@@ -68,7 +79,7 @@ export class VotingManager {
       resolvedAt: null,
     };
 
-    return updateState(state, draft => {
+    let newState = updateState(state, draft => {
       (draft.voting.activeProposals as Proposal[]).push(proposal);
       (draft.history as any[]).push({
         id: generateId(),
@@ -83,6 +94,14 @@ export class VotingManager {
         },
       });
     });
+
+    // Emit proposal-created event
+    newState = emitSystemEvent(newState, 'proposal-created', proposedBy, {
+      proposalId: proposal.id,
+      ruleNumber: rule?.number,
+    });
+
+    return newState;
   }
 
   /**
@@ -124,7 +143,7 @@ export class VotingManager {
       votedAt: Date.now(),
     };
 
-    return updateState(state, draft => {
+    let newState = updateState(state, draft => {
       const proposalIndex = draft.voting.activeProposals.findIndex(
         p => p.id === proposalId
       );
@@ -142,6 +161,14 @@ export class VotingManager {
         data: { proposalId, vote: value },
       });
     });
+
+    // Emit vote-cast event
+    newState = emitSystemEvent(newState, 'vote-cast', playerId, {
+      proposalId,
+      vote: value,
+    });
+
+    return newState;
   }
 
   /**
@@ -291,10 +318,9 @@ export class VotingManager {
 
     switch (proposal.type) {
       case 'add-rule':
-        // Add new rule
-        newState = addRule(newState, proposal.rule);
-        // Award points to proposer (Rule 302)
-        newState = awardPoints(newState, proposal.proposedBy, 10);
+        // Add new rule and activate it
+        const activeRule = { ...proposal.rule, isActive: true };
+        newState = addRule(newState, activeRule);
         break;
 
       case 'modify-rule':
@@ -305,7 +331,6 @@ export class VotingManager {
             (draft.rules as Rule[])[ruleIndex] = proposal.rule!;
           }
         });
-        newState = awardPoints(newState, proposal.proposedBy, 10);
         break;
 
       case 'remove-rule':
@@ -317,9 +342,14 @@ export class VotingManager {
             (draft.rules as Rule[])[ruleIndex] = updatedRule;
           }
         });
-        newState = awardPoints(newState, proposal.proposedBy, 10);
         break;
     }
+
+    // Emit proposal-passed event (Rule 4 will handle point award)
+    newState = emitSystemEvent(newState, 'proposal-passed', proposal.proposedBy, {
+      proposalId: proposal.id,
+      ruleNumber: proposal.rule?.number,
+    });
 
     return newState;
   }

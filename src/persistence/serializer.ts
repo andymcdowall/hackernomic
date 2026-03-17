@@ -109,6 +109,7 @@ export class GameSerializer {
         activeProposals: data.voting.activeProposals.map(p => this.deserializeProposal(p)),
         proposalHistory: data.voting.proposalHistory.map(p => this.deserializeProposal(p)),
       },
+      pendingEvents: [], // Events should be processed before saving
       history: data.history,
       extensions: new Map(data.extensions),
     };

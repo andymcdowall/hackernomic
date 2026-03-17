@@ -30,6 +30,9 @@ export interface GameState {
   readonly turns: TurnState;
   readonly voting: VotingState;
 
+  // Event system
+  readonly pendingEvents: ReadonlyArray<GameEvent>;
+
   // Audit trail
   readonly history: ReadonlyArray<StateTransition>;
 
@@ -62,6 +65,7 @@ export interface Rule {
   readonly isMutable: boolean; // Can this rule be changed?
   readonly proposedBy: string; // player ID
   readonly createdAt: number;
+  readonly triggers: ReadonlyArray<RuleTrigger>; // What events trigger this rule
 }
 
 /**
@@ -154,6 +158,43 @@ export interface VoteResult {
   readonly abstainCount: number;
   readonly totalEligibleVoters: number;
 }
+
+// ============================================================================
+// Event System
+// ============================================================================
+
+export interface GameEvent {
+  readonly type: string;
+  readonly actorId: string;
+  readonly timestamp: number;
+  readonly data?: Record<string, any>;
+}
+
+export type RuleTrigger =
+  | { type: 'event'; eventType: string }
+  | { type: 'never' };
+
+/**
+ * Reserved system events that cannot be emitted by player rules
+ */
+export const SYSTEM_EVENTS = [
+  'turn-start',
+  'turn-end',
+  'proposal-created',
+  'proposal-passed',
+  'proposal-failed',
+  'proposal-withdrawn',
+  'vote-cast',
+  'points-awarded',
+  'player-joined',
+  'rule-added',
+  'rule-modified',
+  'rule-removed',
+  'game-started',
+  'game-completed',
+] as const;
+
+export type SystemEvent = (typeof SYSTEM_EVENTS)[number];
 
 // ============================================================================
 // State Transitions

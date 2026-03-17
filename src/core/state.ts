@@ -7,12 +7,15 @@
 
 import { randomBytes } from 'crypto';
 import type {
+  GameEvent,
   GameState,
   Player,
   Rule,
   StateTransition,
+  SystemEvent,
   Writable,
 } from './types.js';
+import { SYSTEM_EVENTS } from './types.js';
 
 // ============================================================================
 // ID Generation
@@ -89,6 +92,61 @@ export function getInitialRules(): ReadonlyArray<Rule> {
   return [
     {
       id: generateId(),
+      number: 1,
+      name: 'Sequential Turn Order',
+      description: 'Players take turns in sequential order.',
+      code: `// Enforced by turn management system`,
+      isActive: true,
+      isMutable: false,
+      proposedBy: 'system',
+      createdAt: now,
+      triggers: [{ type: 'never' }],
+    },
+    {
+      id: generateId(),
+      number: 2,
+      name: 'One Proposal Per Turn',
+      description: 'Each player may propose one rule per turn.',
+      code: `// Enforced by voting system`,
+      isActive: true,
+      isMutable: false,
+      proposedBy: 'system',
+      createdAt: now,
+      triggers: [{ type: 'never' }],
+    },
+    {
+      id: generateId(),
+      number: 3,
+      name: 'Majority Vote',
+      description:
+        'A proposed rule is adopted if and only if a majority of players vote yes.',
+      code: `// Implemented in voting system`,
+      isActive: true,
+      isMutable: false,
+      proposedBy: 'system',
+      createdAt: now,
+      triggers: [{ type: 'never' }],
+    },
+    {
+      id: generateId(),
+      number: 4,
+      name: 'Points for Adopted Rules',
+      description: 'When a rule is adopted, its proposer gains 10 points.',
+      code: `(state, context) => {
+  // Award 10 points to the proposer when a rule is adopted
+  if (context.triggeredBy) {
+    return StateHelpers.awardPoints(state, context.triggeredBy, 10);
+  }
+  return state;
+}`,
+      isActive: true,
+      isMutable: false,
+      proposedBy: 'system',
+      createdAt: now,
+      triggers: [{ type: 'event', eventType: 'proposal-passed' }],
+    },
+    {
+      id: generateId(),
       number: 101,
       name: 'Win by Points',
       description: 'The first player to reach 100 points wins the game.',
@@ -104,55 +162,7 @@ export function getInitialRules(): ReadonlyArray<Rule> {
       isMutable: true,
       proposedBy: 'system',
       createdAt: now,
-    },
-    {
-      id: generateId(),
-      number: 201,
-      name: 'Sequential Turn Order',
-      description: 'Players take turns in sequential order.',
-      code: `// Enforced by turn management system`,
-      isActive: true,
-      isMutable: true,
-      proposedBy: 'system',
-      createdAt: now,
-    },
-    {
-      id: generateId(),
-      number: 202,
-      name: 'One Proposal Per Turn',
-      description: 'Each player may propose one rule per turn.',
-      code: `// Enforced by voting system`,
-      isActive: true,
-      isMutable: true,
-      proposedBy: 'system',
-      createdAt: now,
-    },
-    {
-      id: generateId(),
-      number: 301,
-      name: 'Majority Vote',
-      description:
-        'A proposed rule is adopted if and only if a majority of players vote yes.',
-      code: `// Implemented in voting system`,
-      isActive: true,
-      isMutable: true,
-      proposedBy: 'system',
-      createdAt: now,
-    },
-    {
-      id: generateId(),
-      number: 302,
-      name: 'Points for Adopted Rules',
-      description: 'When a rule is adopted, its proposer gains 10 points.',
-      code: `(state, context) => {
-  // Triggered when a proposal passes
-  // Awards points to the proposer
-  return state; // Implemented by voting system
-}`,
-      isActive: true,
-      isMutable: true,
-      proposedBy: 'system',
-      createdAt: now,
+      triggers: [{ type: 'event', eventType: 'turn-end' }],
     },
   ];
 }
@@ -183,6 +193,7 @@ export function createInitialState(gameId: string): GameState {
       activeProposals: [],
       proposalHistory: [],
     },
+    pendingEvents: [],
     history: [
       {
         id: generateId(),
@@ -283,6 +294,32 @@ export function addTransition(
 ): GameState {
   return updateState(state, draft => {
     (draft.history as StateTransition[]).push(transition);
+  });
+}
+
+// ============================================================================
+// Event Emission
+// ============================================================================
+
+/**
+ * Emit a system event (internal use only)
+ * @internal
+ */
+export function emitSystemEvent(
+  state: GameState,
+  eventType: SystemEvent,
+  actorId: string,
+  data?: Record<string, any>
+): GameState {
+  const event: GameEvent = {
+    type: eventType,
+    actorId,
+    timestamp: Date.now(),
+    data,
+  };
+
+  return updateState(state, draft => {
+    (draft.pendingEvents as GameEvent[]).push(event);
   });
 }
 
@@ -388,5 +425,27 @@ export const StateHelpers = {
         points: state.points.get(player.id) || 0,
       }))
       .sort((a, b) => b.points - a.points);
+  },
+
+  /**
+   * Emit a custom event (player rules can call this)
+   * System events are reserved and will throw an error
+   */
+  emitEvent(state: GameState, eventType: string, data?: Record<string, any>): GameState {
+    // Validate not a system event
+    if (SYSTEM_EVENTS.includes(eventType as SystemEvent)) {
+      throw new Error(`Cannot emit reserved system event: ${eventType}`);
+    }
+
+    const event: GameEvent = {
+      type: eventType,
+      actorId: 'rule',
+      timestamp: Date.now(),
+      data,
+    };
+
+    return updateState(state, draft => {
+      (draft.pendingEvents as GameEvent[]).push(event);
+    });
   },
 };
