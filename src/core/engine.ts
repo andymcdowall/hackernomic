@@ -14,7 +14,7 @@ import type {
   VoteValue,
   VotingRules,
 } from './types.js';
-import { NomicEngineError } from './types.js';
+import { NomicEngineError, RuleExecutionError } from './types.js';
 import { addPlayer, createInitialState, emitSystemEvent, generateId } from './state.js';
 import { TurnManager } from '../systems/turn.js';
 import { VotingManager } from '../systems/voting.js';
@@ -323,7 +323,7 @@ export class NomicEngine {
 
     const result = this.ruleExecutor.executeRule(this.state, rule, context);
     if (!result.success) {
-      throw new NomicEngineError(`Rule execution failed: ${result.error}`, 'RULE_EXECUTION_FAILED');
+      throw new RuleExecutionError(`Rule execution failed: ${result.error}`, rule, result.error);
     }
 
     if (result.state) {

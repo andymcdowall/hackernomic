@@ -83,7 +83,7 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
           playerId,
           value: vote.value,
         })),
-        totalActivePlayers: engine.getPlayers().filter(p => p.isActive).length,
+        totalActivePlayers: engine.getPlayers().filter(player => player.isActive).length,
       }))
     );
   });
@@ -168,10 +168,12 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
       engine.vote(proposalId, playerId, value);
       await engine.save(saveFile);
 
+      // engine.getProposal checks both activeProposals and proposalHistory,
+      // so this returns the real status ('passed'/'failed') even after auto-resolution.
       const proposal = engine.getProposal(proposalId);
       res.json({
         proposalId,
-        status: proposal?.status ?? 'resolved',
+        status: proposal?.status,
       });
     } catch (err) {
       next(err);
