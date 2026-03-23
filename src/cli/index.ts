@@ -109,6 +109,7 @@ async function interactivePlay(engine: NomicEngine, saveFile: string): Promise<v
 
   console.log('\n╔═══════════════════════════════════════╗');
   console.log('║   Nomic Engine - Interactive Mode    ║');
+  console.log('║   *** WORKTREE: worktree-debugging ***║');
   console.log('╚═══════════════════════════════════════╝\n');
 
   console.log('Commands:');
