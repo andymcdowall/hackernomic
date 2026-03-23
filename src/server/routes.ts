@@ -11,6 +11,9 @@ import { Router as createRouter } from 'express';
 import type { NomicEngine } from '../core/engine.js';
 import type { Rule } from '../core/types.js';
 
+// Note: playerId is taken from the request body with no cryptographic verification.
+// Any client can claim to be any player. This is intentional for local/trusted play.
+// Revisit before exposing this server over an untrusted network.
 function assertCurrentPlayer(engine: NomicEngine, playerId: string, res: Response): boolean {
   if (engine.getStatus() !== 'active') {
     res.status(400).json({ error: `Game is not active (status: ${engine.getStatus()})` });
@@ -27,6 +30,15 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
   const router = createRouter();
 
   // ── Read endpoints ────────────────────────────────────────────────────────
+  // Response shapes per endpoint:
+  //   GET  /state       → { gameId, status, turn, currentPlayerId, players[], activeProposals }
+  //   GET  /rules       → Rule[] (id, number, name, description, isMutable, proposedBy — no code)
+  //   GET  /proposals   → Proposal[] (id, type, description, proposedBy, status, votes[], totalPlayers)
+  //   POST /players     → Player (id, name, joinedAt, isActive)
+  //   POST /start       → { status }
+  //   POST /propose     → { proposalId }
+  //   POST /vote        → { proposalId, status }
+  //   POST /end-turn    → { turn, currentPlayerId }
 
   router.get('/state', (_req: Request, res: Response) => {
     const state = engine.getState();
@@ -115,6 +127,10 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
         res.status(400).json({ error: 'playerId, description, and rule are required' });
         return;
       }
+      if (typeof rule.name !== 'string' || !rule.name || typeof rule.code !== 'string' || !rule.code) {
+        res.status(400).json({ error: 'rule.name and rule.code must be non-empty strings' });
+        return;
+      }
       if (!assertCurrentPlayer(engine, playerId, res)) return;
 
       const proposalId = engine.proposeRule(playerId, description, rule);
@@ -125,6 +141,10 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
     }
   });
 
+  // Note: concurrent POST /vote requests are not protected by a lock. Two simultaneous
+  // votes could both read pre-resolved state and both attempt auto-resolution. This is
+  // a known limitation acceptable for single-machine local play. Add a mutex before
+  // exposing this server to real concurrent clients.
   router.post('/vote', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { playerId, proposalId, value } = req.body as {

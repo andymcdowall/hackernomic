@@ -15,6 +15,7 @@ import type {
   VoteValue,
   VotingRules,
 } from '../core/types.js';
+import { NomicEngineError } from '../core/types.js';
 import { addRule, emitSystemEvent, generateId, updateState } from '../core/state.js';
 
 // ============================================================================
@@ -38,17 +39,17 @@ export class VotingManager {
     rule?: Rule
   ): GameState {
     if (state.status !== 'active') {
-      throw new Error('Cannot create proposals during setup or when game is complete');
+      throw new NomicEngineError('Cannot create proposals during setup or when game is complete', 'INVALID_STATE');
     }
 
     // Verify proposer is a valid player
     const proposer = state.players.find(p => p.id === proposedBy);
     if (!proposer) {
-      throw new Error(`Player ${proposedBy} not found`);
+      throw new NomicEngineError(`Player ${proposedBy} not found`, 'NOT_FOUND');
     }
 
     if (!proposer.isActive) {
-      throw new Error(`Player ${proposedBy} is not active`);
+      throw new NomicEngineError(`Player ${proposedBy} is not active`, 'PLAYER_INACTIVE');
     }
 
     // Rule 2: One Proposal Per Turn
@@ -59,12 +60,12 @@ export class VotingManager {
     );
 
     if (hasActiveProposalThisTurn) {
-      throw new Error('Rule 2: Only one proposal per turn is allowed');
+      throw new NomicEngineError('Rule 2: Only one proposal per turn is allowed', 'PROPOSAL_LIMIT');
     }
 
     // For modify/remove proposals, rule is required
     if ((type === 'modify-rule' || type === 'remove-rule') && !rule) {
-      throw new Error(`Rule is required for ${type} proposals`);
+      throw new NomicEngineError(`Rule is required for ${type} proposals`, 'INVALID_STATE');
     }
 
     const proposal: Proposal = {
@@ -115,26 +116,26 @@ export class VotingManager {
   ): GameState {
     const proposal = state.voting.activeProposals.find(p => p.id === proposalId);
     if (!proposal) {
-      throw new Error(`Proposal ${proposalId} not found`);
+      throw new NomicEngineError(`Proposal ${proposalId} not found`, 'NOT_FOUND');
     }
 
     if (proposal.status !== 'pending') {
-      throw new Error(`Proposal ${proposalId} is ${proposal.status}, cannot vote`);
+      throw new NomicEngineError(`Proposal ${proposalId} is ${proposal.status}, cannot vote`, 'PROPOSAL_RESOLVED');
     }
 
     // Verify voter is a valid active player
     const voter = state.players.find(p => p.id === playerId);
     if (!voter) {
-      throw new Error(`Player ${playerId} not found`);
+      throw new NomicEngineError(`Player ${playerId} not found`, 'NOT_FOUND');
     }
 
     if (!voter.isActive) {
-      throw new Error(`Player ${playerId} is not active and cannot vote`);
+      throw new NomicEngineError(`Player ${playerId} is not active and cannot vote`, 'PLAYER_INACTIVE');
     }
 
     // Check if player already voted
     if (proposal.votes.has(playerId)) {
-      throw new Error(`Player ${playerId} has already voted on this proposal`);
+      throw new NomicEngineError(`Player ${playerId} has already voted on this proposal`, 'ALREADY_VOTED');
     }
 
     const vote: Vote = {
@@ -204,11 +205,11 @@ export class VotingManager {
   ): GameState {
     const proposal = state.voting.activeProposals.find(p => p.id === proposalId);
     if (!proposal) {
-      throw new Error(`Proposal ${proposalId} not found`);
+      throw new NomicEngineError(`Proposal ${proposalId} not found`, 'NOT_FOUND');
     }
 
     if (proposal.status !== 'pending') {
-      throw new Error(`Proposal ${proposalId} is already ${proposal.status}`);
+      throw new NomicEngineError(`Proposal ${proposalId} is already ${proposal.status}`, 'PROPOSAL_RESOLVED');
     }
 
     const rules = votingRules || this.defaultVotingRules;
@@ -216,7 +217,7 @@ export class VotingManager {
 
     // Check if we can resolve
     if (!this.canResolve(state, proposalId, rules)) {
-      throw new Error('Not all required votes have been cast');
+      throw new NomicEngineError('Not all required votes have been cast', 'INVALID_STATE');
     }
 
     // Tally votes
@@ -360,15 +361,15 @@ export class VotingManager {
   withdrawProposal(state: GameState, proposalId: string, playerId: string): GameState {
     const proposal = state.voting.activeProposals.find(p => p.id === proposalId);
     if (!proposal) {
-      throw new Error(`Proposal ${proposalId} not found`);
+      throw new NomicEngineError(`Proposal ${proposalId} not found`, 'NOT_FOUND');
     }
 
     if (proposal.proposedBy !== playerId) {
-      throw new Error(`Only the proposer can withdraw a proposal`);
+      throw new NomicEngineError(`Only the proposer can withdraw a proposal`, 'PERMISSION_DENIED');
     }
 
     if (proposal.status !== 'pending') {
-      throw new Error(`Cannot withdraw ${proposal.status} proposal`);
+      throw new NomicEngineError(`Cannot withdraw ${proposal.status} proposal`, 'INVALID_STATE');
     }
 
     return updateState(state, draft => {

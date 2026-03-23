@@ -6,8 +6,11 @@ import * as fs from 'fs/promises';
 import { NomicEngine } from '../core/engine.js';
 import { createApp } from './index.js';
 
+const tempFiles: string[] = [];
+
 async function makeGame(playerNames: string[] = ['Alice', 'Bob']) {
-  const saveFile = path.join(os.tmpdir(), `nomic-test-${Date.now()}.json`);
+  const saveFile = path.join(os.tmpdir(), `nomic-test-${Date.now()}-${Math.random().toString(36).slice(2)}.json`);
+  tempFiles.push(saveFile);
   const engine = new NomicEngine();
   engine.initialize(playerNames);
   await engine.save(saveFile);
@@ -23,7 +26,10 @@ async function makeActiveGame(playerNames: string[] = ['Alice', 'Bob']) {
 }
 
 afterEach(async () => {
-  // Clean up temp files — best-effort
+  while (tempFiles.length > 0) {
+    const f = tempFiles.pop()!;
+    await fs.unlink(f).catch(() => { /* already gone */ });
+  }
 });
 
 describe('GET /state', () => {
