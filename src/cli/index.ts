@@ -10,6 +10,7 @@ import { Command } from 'commander';
 import * as readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { NomicEngine, generateId, type Rule, type RuleTrigger } from '../index.js';
+import { createApp } from '../server/index.js';
 
 const program = new Command();
 
@@ -94,6 +95,26 @@ program
     try {
       const engine = await NomicEngine.load(gameFile);
       showLeaderboard(engine);
+    } catch (error) {
+      console.error('Error:', error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('server <game-file>')
+  .description('Start HTTP game server')
+  .option('-p, --port <number>', 'Port to listen on', '3000')
+  .action(async (gameFile: string, options: { port: string }) => {
+    try {
+      const engine = await NomicEngine.load(gameFile);
+      const app = createApp(engine, gameFile);
+      const port = parseInt(options.port, 10);
+      app.listen(port, () => {
+        console.log(`\nGame server running on http://localhost:${port}`);
+        console.log(`Game: ${gameFile}`);
+        console.log('Press Ctrl+C to stop\n');
+      });
     } catch (error) {
       console.error('Error:', error instanceof Error ? error.message : error);
       process.exit(1);
