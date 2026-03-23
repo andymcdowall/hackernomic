@@ -2,6 +2,10 @@
 
 This file contains specific instructions and workflows for Claude Code when working on this project.
 
+## General Notes
+
+- PRs on this project are reviewed by both the user and ChatGPT in a separate pipeline. Write code and PR descriptions with this in mind — be clear, well-structured, and self-explanatory so any reviewer can follow the reasoning.
+
 ## Feature Development Workflow
 
 When adding a new feature or implementing a significant change, follow this workflow:
