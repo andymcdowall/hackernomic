@@ -9,6 +9,8 @@ When adding a new feature or implementing a significant change, follow this work
 ### 1. Create a New Branch
 
 Before starting development:
+- If you are not using a worktree, as the user if they would like to use one, and create a new one if so.
+- The git worktree name should always be the same as the worktree's folder name
 - Create a descriptive branch name using the format: `feature/<short-description>` or `fix/<short-description>`
 - Examples: `feature/depth-first-events`, `fix/rule-execution-order`
 
@@ -19,6 +21,7 @@ git checkout -b feature/<description>
 ### 2. Development
 
 - Make code changes following the project's architectural guidelines in `.claude/architecture.md`
+- You may find it useful to read the `docs` folder when making architecture or complicated changes
 - Ensure code follows existing patterns and conventions
 - Keep commits focused and descriptive
 - Commit incrementally as you complete logical units of work

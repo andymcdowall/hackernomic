@@ -333,8 +333,9 @@ npm test
 # Type check
 npm run typecheck
 
-# Development mode
-npm run dev
+# Development mode (pass -- to forward args to the CLI)
+npm run dev -- play games/my-game.json
+npm run dev -- new my-game --players Alice Bob
 ```
 
 ## Architecture Decisions
@@ -380,7 +381,7 @@ npm run dev
 
 ## License
 
-MIT
+None.
 
 ## Credits
 
