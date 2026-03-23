@@ -99,6 +99,12 @@ describe('POST /start', () => {
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('active');
   });
+
+  it('returns 400 when game is already active', async () => {
+    const { app } = await makeActiveGame();
+    const res = await request(app).post('/start');
+    expect(res.status).toBe(400);
+  });
 });
 
 describe('POST /propose', () => {

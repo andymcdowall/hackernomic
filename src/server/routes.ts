@@ -9,21 +9,22 @@
 import type { Router, Request, Response, NextFunction } from 'express';
 import { Router as createRouter } from 'express';
 import type { NomicEngine } from '../core/engine.js';
+import { NomicEngineError } from '../core/types.js';
 import type { Rule } from '../core/types.js';
 
 // Note: playerId is taken from the request body with no cryptographic verification.
 // Any client can claim to be any player. This is intentional for local/trusted play.
 // Revisit before exposing this server over an untrusted network.
-function assertCurrentPlayer(engine: NomicEngine, playerId: string, res: Response): boolean {
+//
+// Throws NomicEngineError so callers inside try/catch blocks get automatic error
+// handler dispatch — no boolean return to forget to check.
+function assertCurrentPlayer(engine: NomicEngine, playerId: string): void {
   if (engine.getStatus() !== 'active') {
-    res.status(400).json({ error: `Game is not active (status: ${engine.getStatus()})` });
-    return false;
+    throw new NomicEngineError(`Game is not active (status: ${engine.getStatus()})`, 'INVALID_STATE');
   }
   if (!engine.isPlayerTurn(playerId)) {
-    res.status(409).json({ error: 'It is not your turn' });
-    return false;
+    throw new NomicEngineError('It is not your turn', 'PERMISSION_DENIED');
   }
-  return true;
 }
 
 export function createRoutes(engine: NomicEngine, saveFile: string): Router {
@@ -82,7 +83,7 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
           playerId,
           value: vote.value,
         })),
-        totalPlayers: engine.getPlayers().length,
+        totalActivePlayers: engine.getPlayers().filter(p => p.isActive).length,
       }))
     );
   });
@@ -131,7 +132,11 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
         res.status(400).json({ error: 'rule.name and rule.code must be non-empty strings' });
         return;
       }
-      if (!assertCurrentPlayer(engine, playerId, res)) return;
+      if (typeof rule.number !== 'number' || !Number.isInteger(rule.number)) {
+        res.status(400).json({ error: 'rule.number must be an integer' });
+        return;
+      }
+      assertCurrentPlayer(engine, playerId);
 
       const proposalId = engine.proposeRule(playerId, description, rule);
       await engine.save(saveFile);
@@ -180,7 +185,7 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
         res.status(400).json({ error: 'playerId is required' });
         return;
       }
-      if (!assertCurrentPlayer(engine, playerId, res)) return;
+      assertCurrentPlayer(engine, playerId);
 
       engine.endTurn();
       await engine.save(saveFile);
