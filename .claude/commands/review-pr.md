@@ -1,8 +1,8 @@
-Review the pull request $ARGUMENTS.
+The PR number is the first word of "$ARGUMENTS". Use that number for all commands below.
 
-1. Fetch the PR details: `gh pr view $ARGUMENTS`
-2. Fetch the diff: `gh pr diff $ARGUMENTS`
-3. Fetch any existing review comments: `gh api repos/{owner}/{repo}/pulls/$ARGUMENTS/comments`
+1. Fetch the PR details: `gh pr view <PR_NUMBER>`
+2. Fetch the diff: `gh pr diff <PR_NUMBER>`
+3. Fetch any existing review comments: `gh api repos/{owner}/{repo}/pulls/<PR_NUMBER>/comments`
 
 Review the changes for:
 - Correctness and logic errors
