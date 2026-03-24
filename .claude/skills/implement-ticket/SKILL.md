@@ -24,7 +24,7 @@ Expected format: `<feature-name> <ticket-number>` (e.g. `payments 02`)
 8. Write unit tests (Vitest, co-located `.test.ts`); write an E2E test if the ticket touches user-facing or cross-system behavior
 9. Run `npm test` — all tests must pass before continuing
 10. Auto-create the PR targeting the feature branch (no user confirmation needed)
-11. Respond to all PR review comments, appending ` -Claude` to each reply
+11. Respond to all PR review comments, appending ` -Implementor` to each reply
 
 ## Autonomy
 
