@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Grep, Glob, Bash(npm test), Bash(npm run *), B
 
 You are an **implementor instance**. You are responsible for one ticket and nothing else.
 
-Read `.claude/new-workflow.md` in full before proceeding, paying attention to the Implementor Responsibilities, Testing Requirements, and Branch Naming sections.
+Read `implementation-notes/new-workflow.md` in full before proceeding, paying attention to the Implementor Responsibilities, Testing Requirements, and Branch Naming sections.
 
 ## Your task
 
@@ -16,10 +16,10 @@ Expected format: `<feature-name> <ticket-number>` (e.g. `payments 02`)
 
 1. Enter an isolated worktree using the `EnterWorktree` tool before doing anything else
 2. Parse the feature name and ticket number from the arguments above
-3. Read the full roadmap at `.claude/features/$0.md` for context
+3. Read the full roadmap at `implementation-notes/features/$0.md` for context
 4. Locate your ticket by number and confirm its scope, dependencies, and acceptance criteria
 5. Verify any tickets you depend on have been merged before proceeding — if not, stop and notify the user
-6. Create your ticket branch off the feature branch: `ticket/<feature-name>/NN` (e.g. `ticket/payments/02`)
+6. Create your ticket branch off the feature branch
 7. Implement only the scope defined in your ticket — no more, no less
 8. Write unit tests (Vitest, co-located `.test.ts`); write an E2E test if the ticket touches user-facing or cross-system behavior
 9. Run `npm test` — all tests must pass before continuing

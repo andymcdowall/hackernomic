@@ -45,13 +45,13 @@ Invoke with `/roadmap <feature-name>`. The roadmap instance:
 2. Explores the codebase and dialogues with the user about decomposition
 3. Creates the feature branch: `feature/<feature-name>`
 4. Creates a roadmap sub-branch off the feature branch: `ticket/<feature-name>/0`
-5. Writes the roadmap to `.claude/features/<feature-name>.md`
+5. Writes the roadmap to `implementation-notes/features/<feature-name>.md`
 6. Produces any scaffolding needed to give implementors a head start (docs, config, type stubs, etc.)
 7. Commits everything to `ticket/<feature-name>/0` and opens a PR targeting `feature/<feature-name>` (not `main`)
 
 ### Roadmap File Format
 
-`.claude/features/<feature-name>.md`
+`implementation-notes/features/<feature-name>.md`
 
 ```markdown
 # Feature: <Feature Name>
