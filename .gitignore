@@ -4,4 +4,4 @@ dist/
 .DS_Store
 games/*.json
 !games/.gitkeep
-worktrees/
+.claude/worktrees/
