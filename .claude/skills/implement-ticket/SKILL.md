@@ -19,7 +19,7 @@ Expected format: `<feature-name> <ticket-number>` (e.g. `payments 02`)
 3. Read the full roadmap at `.claude/features/$0.md` for context
 4. Locate your ticket by number and confirm its scope, dependencies, and acceptance criteria
 5. Verify any tickets you depend on have been merged before proceeding — if not, stop and notify the user
-6. Create your ticket branch off the feature branch
+6. Create your ticket branch off the feature branch: `feature/<feature-name>/NN` (e.g. `feature/payments/02`)
 7. Implement only the scope defined in your ticket — no more, no less
 8. Write unit tests (Vitest, co-located `.test.ts`); write an E2E test if the ticket touches user-facing or cross-system behavior
 9. Run `npm test` — all tests must pass before continuing

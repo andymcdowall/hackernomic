@@ -12,9 +12,9 @@ Large features are decomposed into tickets. Each ticket is implemented by a dedi
 main
  └── feature/<feature-name>           ← feature branch (PRs to main only after final QA)
        ├── feature/<feature-name>/0   ← roadmap + scaffolding PR → feature branch
-       ├── ticket/01-<description>    ← ticket 1 PR → feature branch
-       ├── ticket/02-<description>    ← ticket 2 PR → feature branch (depends on 01)
-       └── ticket/03-<description>    ← ticket 3 PR → feature branch (depends on 01, parallel with 02)
+       ├── feature/<feature-name>/01  ← ticket 1 PR → feature branch
+       ├── feature/<feature-name>/02  ← ticket 2 PR → feature branch (depends on 01)
+       └── feature/<feature-name>/03  ← ticket 3 PR → feature branch (depends on 01, parallel with 02)
 ```
 
 ---
@@ -67,8 +67,8 @@ Invoke with `/roadmap <feature-name>`. The roadmap instance:
 <!-- Repeat the Ticket block below once per ticket. Number sequentially: 01, 02, 03, ... -->
 
 ### Ticket NN — <Short Description>
-- **Branch**: `ticket/NN-<description>`
-- **Worktree**: `.claude/worktrees/ticket/NN-<description>` (omit if sequential, no parallel work)
+- **Branch**: `feature/<feature-name>/NN`
+- **Worktree**: `.claude/worktrees/feature/<feature-name>/NN` (omit if sequential, no parallel work)
 - **Depends on**: <Ticket NN | none>
 - **Parallel with**: <Ticket NN | none>
 - **Goal**: <What this ticket accomplishes>
@@ -141,7 +141,8 @@ Agents do this autonomously using the `EnterWorktree` tool at the start of their
 | Purpose | Pattern |
 |---------|---------|
 | Feature branch | `feature/<feature-name>` |
-| Ticket branch | `ticket/<NN>-<short-description>` |
+| Roadmap branch | `feature/<feature-name>/0` |
+| Ticket branch | `feature/<feature-name>/NN` (e.g. `feature/payments/01`) |
 
 ---
 
