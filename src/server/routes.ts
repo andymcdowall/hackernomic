@@ -11,6 +11,11 @@ import { Router as createRouter } from 'express';
 import type { NomicEngine } from '../core/engine.js';
 import { NomicEngineError } from '../core/types.js';
 import type { Rule } from '../core/types.js';
+import { generateId } from '../core/state.js';
+
+// Fields a client supplies when proposing a rule. Server generates id, createdAt,
+// isActive, isMutable, and proposedBy.
+type RuleInput = Pick<Rule, 'number' | 'name' | 'description' | 'code' | 'triggers'>;
 
 // Note: playerId is taken from the request body with no cryptographic verification.
 // Any client can claim to be any player. This is intentional for local/trusted play.
@@ -34,7 +39,7 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
   // Response shapes per endpoint:
   //   GET  /state       → { gameId, status, turn, currentPlayerId, players[], activeProposals }
   //   GET  /rules       → Rule[] (id, number, name, description, isMutable, proposedBy — no code)
-  //   GET  /proposals   → Proposal[] (id, type, description, proposedBy, status, votes[], totalPlayers)
+  //   GET  /proposals   → Proposal[] (id, type, description, proposedBy, status, votes[], totalActivePlayers)
   //   POST /players     → Player (id, name, joinedAt, isActive)
   //   POST /start       → { status }
   //   POST /propose     → { proposalId }
@@ -119,25 +124,33 @@ export function createRoutes(engine: NomicEngine, saveFile: string): Router {
 
   router.post('/propose', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { playerId, description, rule } = req.body as {
+      const { playerId, description, rule: ruleInput } = req.body as {
         playerId: string;
         description: string;
-        rule: Rule;
+        rule: RuleInput;
       };
-      if (!playerId || !description || !rule) {
+      if (!playerId || !description || !ruleInput) {
         res.status(400).json({ error: 'playerId, description, and rule are required' });
         return;
       }
-      if (typeof rule.name !== 'string' || !rule.name || typeof rule.code !== 'string' || !rule.code) {
+      if (typeof ruleInput.name !== 'string' || !ruleInput.name || typeof ruleInput.code !== 'string' || !ruleInput.code) {
         res.status(400).json({ error: 'rule.name and rule.code must be non-empty strings' });
         return;
       }
-      if (typeof rule.number !== 'number' || !Number.isInteger(rule.number)) {
+      if (typeof ruleInput.number !== 'number' || !Number.isInteger(ruleInput.number)) {
         res.status(400).json({ error: 'rule.number must be an integer' });
         return;
       }
       assertCurrentPlayer(engine, playerId);
 
+      const rule: Rule = {
+        ...ruleInput,
+        id: generateId(),
+        createdAt: Date.now(),
+        isActive: false,
+        isMutable: true,
+        proposedBy: playerId,
+      };
       const proposalId = engine.proposeRule(playerId, description, rule);
       await engine.save(saveFile);
       res.status(201).json({ proposalId });
