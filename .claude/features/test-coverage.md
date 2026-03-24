@@ -34,7 +34,7 @@ The codebase has one existing test file (`src/rules/dispatcher.test.ts`) but no 
 ## Tickets
 
 ### Ticket 01 — Coverage Tooling & Testing Docs
-- **Branch**: `feature/test-coverage/01`
+- **Branch**: `ticket/test-coverage/01`
 - **Depends on**: none
 - **Parallel with**: none
 - **Goal**: Install `@vitest/coverage-v8`, configure coverage thresholds, add `test:coverage` npm script, and create `docs/testing.md` documenting the project's testing philosophy and exclusions.
@@ -50,8 +50,8 @@ The codebase has one existing test file (`src/rules/dispatcher.test.ts`) but no 
   - [ ] All existing tests still pass (`npm test`)
 
 ### Ticket 02 — Tests: `core/state.ts`
-- **Branch**: `feature/test-coverage/02`
-- **Worktree**: `.claude/worktrees/feature/test-coverage/02`
+- **Branch**: `ticket/test-coverage/02`
+- **Worktree**: `.claude/worktrees/ticket/test-coverage/02`
 - **Depends on**: Ticket 01
 - **Parallel with**: Tickets 03, 04, 05, 06, 07, 08
 - **Goal**: Comprehensive unit tests for `src/core/state.ts` — ID generation, deep clone/freeze, state factory functions, and all `updateState`/`emitSystemEvent` helpers.
@@ -64,8 +64,8 @@ The codebase has one existing test file (`src/rules/dispatcher.test.ts`) but no 
   - [ ] `npm test` passes
 
 ### Ticket 03 — Tests: `core/engine.ts`
-- **Branch**: `feature/test-coverage/03`
-- **Worktree**: `.claude/worktrees/feature/test-coverage/03`
+- **Branch**: `ticket/test-coverage/03`
+- **Worktree**: `.claude/worktrees/ticket/test-coverage/03`
 - **Depends on**: Ticket 01
 - **Parallel with**: Tickets 02, 04, 05, 06, 07, 08
 - **Goal**: Unit tests for `src/core/engine.ts` — game creation, player management, rule lifecycle, turn progression, voting flow, and event dispatch integration.
@@ -79,8 +79,8 @@ The codebase has one existing test file (`src/rules/dispatcher.test.ts`) but no 
   - [ ] `npm test` passes
 
 ### Ticket 04 — Tests: `systems/voting.ts`
-- **Branch**: `feature/test-coverage/04`
-- **Worktree**: `.claude/worktrees/feature/test-coverage/04`
+- **Branch**: `ticket/test-coverage/04`
+- **Worktree**: `.claude/worktrees/ticket/test-coverage/04`
 - **Depends on**: Ticket 01
 - **Parallel with**: Tickets 02, 03, 05, 06, 07, 08
 - **Goal**: Unit tests for `src/systems/voting.ts` — proposal creation, vote casting, resolution logic (majority, thresholds), and point awards.
@@ -94,8 +94,8 @@ The codebase has one existing test file (`src/rules/dispatcher.test.ts`) but no 
   - [ ] `npm test` passes
 
 ### Ticket 05 — Tests: `systems/turn.ts` & `systems/transitions.ts`
-- **Branch**: `feature/test-coverage/05`
-- **Worktree**: `.claude/worktrees/feature/test-coverage/05`
+- **Branch**: `ticket/test-coverage/05`
+- **Worktree**: `.claude/worktrees/ticket/test-coverage/05`
 - **Depends on**: Ticket 01
 - **Parallel with**: Tickets 02, 03, 04, 06, 07, 08
 - **Goal**: Unit tests for `src/systems/turn.ts` (turn order, current player, history) and `src/systems/transitions.ts` (state transition validation, audit log entries).
@@ -111,8 +111,8 @@ The codebase has one existing test file (`src/rules/dispatcher.test.ts`) but no 
   - [ ] `npm test` passes
 
 ### Ticket 06 — Tests: `rules/executor.ts` & `rules/composition.ts`
-- **Branch**: `feature/test-coverage/06`
-- **Worktree**: `.claude/worktrees/feature/test-coverage/06`
+- **Branch**: `ticket/test-coverage/06`
+- **Worktree**: `.claude/worktrees/ticket/test-coverage/06`
 - **Depends on**: Ticket 01
 - **Parallel with**: Tickets 02, 03, 04, 05, 07, 08
 - **Goal**: Unit tests for `src/rules/executor.ts` (rule execution results, error handling) and `src/rules/composition.ts` (all composition helpers: conditional, turn-based, player-specific, etc.).
@@ -127,8 +127,8 @@ The codebase has one existing test file (`src/rules/dispatcher.test.ts`) but no 
   - [ ] `npm test` passes
 
 ### Ticket 07 — Tests: `persistence/serializer.ts`
-- **Branch**: `feature/test-coverage/07`
-- **Worktree**: `.claude/worktrees/feature/test-coverage/07`
+- **Branch**: `ticket/test-coverage/07`
+- **Worktree**: `.claude/worktrees/ticket/test-coverage/07`
 - **Depends on**: Ticket 01
 - **Parallel with**: Tickets 02, 03, 04, 05, 06, 08
 - **Goal**: Unit tests for `src/persistence/serializer.ts` — serialize/deserialize round-trips for GameState, including edge cases like empty collections and nested structures.
@@ -142,8 +142,8 @@ The codebase has one existing test file (`src/rules/dispatcher.test.ts`) but no 
   - [ ] `npm test` passes
 
 ### Ticket 08 — Tests: `sandbox/runtime.ts`
-- **Branch**: `feature/test-coverage/08`
-- **Worktree**: `.claude/worktrees/feature/test-coverage/08`
+- **Branch**: `ticket/test-coverage/08`
+- **Worktree**: `.claude/worktrees/ticket/test-coverage/08`
 - **Depends on**: Ticket 01
 - **Parallel with**: Tickets 02, 03, 04, 05, 06, 07
 - **Goal**: Integration-style unit tests for `src/sandbox/runtime.ts` — verify the vm2 sandbox executes valid code, enforces timeout, blocks disallowed globals, and returns errors for bad code.
