@@ -155,7 +155,7 @@ This project is pre-alpha — do not add backwards-compatibility shims (e.g., un
 
 - **NEVER create a PR without user confirmation**
 - **ALWAYS run tests before asking for user confirmation**
-- **ALWAYS use `gh` CLI for GitHub operations** (not manual web interface)
+- **ALWAYS use GitHub MCP tools for GitHub operations** (not `gh` CLI or manual web interface)
 - **DO NOT push to main/master directly** - all changes go through PRs
 - **DO NOT use `--force` push** unless explicitly requested by user
 - **DO NOT skip hooks** (--no-verify) unless user explicitly requests it
