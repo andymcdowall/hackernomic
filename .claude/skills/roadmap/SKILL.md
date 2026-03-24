@@ -17,10 +17,11 @@ Feature name: `$ARGUMENTS`
 2. Explore the codebase to understand the relevant architecture, files, and conventions
 3. **Before writing anything**, dialogue with the user: share your understanding of the problem, propose a decomposition, and ask about intent, constraints, and priorities. The roadmap should reflect the user's decisions, not just your analysis
 4. Incorporate the user's feedback, then create the feature branch: `feature/$ARGUMENTS`
-5. Write the roadmap file to `implementation-notes/features/$ARGUMENTS.md`, following the schema in the workflow doc exactly
-6. Produce any scaffolding that will help implementors hit the ground running — this may include docs, configuration files, directory structure, type stubs, or other non-implementation artifacts. Discuss with the user what scaffolding is needed before creating it
-7. Commit all files (roadmap + scaffolding) and open a PR from the feature branch targeting `main`
-8. Report back with the PR URL and a summary of the tickets you defined
+5. Create a roadmap sub-branch off the feature branch: `ticket/$ARGUMENTS/0`
+6. Write the roadmap file to `implementation-notes/features/$ARGUMENTS.md`, following the schema in the workflow doc exactly
+7. Produce any scaffolding that will help implementors hit the ground running — this may include docs, configuration files, directory structure, type stubs, or other non-implementation artifacts. Discuss with the user what scaffolding is needed before creating it
+8. Commit all files (roadmap + scaffolding) to `ticket/$ARGUMENTS/0` and open a PR targeting `feature/$ARGUMENTS` (not `main`)
+9. Report back with the PR URL and a summary of the tickets you defined
 
 ## Constraints
 
