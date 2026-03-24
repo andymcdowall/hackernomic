@@ -181,7 +181,7 @@ export class RuleSandbox {
   validate(ruleCode: string): { valid: boolean; error?: string } {
     try {
       // Try to parse the code as a function
-      new Function(`return (${ruleCode})`);
+      new Function(`const f = ${ruleCode}; if (typeof f !== 'function') throw new Error('Not a function');`);
       return { valid: true };
     } catch (error) {
       return {

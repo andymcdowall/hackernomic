@@ -2,6 +2,10 @@
 
 This file contains specific instructions and workflows for Claude Code when working on this project.
 
+## General Notes
+
+- PRs on this project are reviewed by both the user and ChatGPT in a separate pipeline. Write code and PR descriptions with this in mind — be clear, well-structured, and self-explanatory so any reviewer can follow the reasoning.
+
 ## Feature Development Workflow
 
 When adding a new feature or implementing a significant change, follow this workflow:
@@ -9,6 +13,8 @@ When adding a new feature or implementing a significant change, follow this work
 ### 1. Create a New Branch
 
 Before starting development:
+- If you are not using a worktree, ask the user if they would like to use one, and create a new one if so.
+- The git worktree name should always be the same as the worktree's folder name
 - Create a descriptive branch name using the format: `feature/<short-description>` or `fix/<short-description>`
 - Examples: `feature/depth-first-events`, `fix/rule-execution-order`
 
@@ -19,9 +25,11 @@ git checkout -b feature/<description>
 ### 2. Development
 
 - Make code changes following the project's architectural guidelines in `.claude/architecture.md`
+- You may find it useful to read the `docs` folder when making architecture or complicated changes
 - Ensure code follows existing patterns and conventions
 - Keep commits focused and descriptive
 - Commit incrementally as you complete logical units of work
+- When running inside a worktree, the Bash tool's CWD is already the worktree directory — use plain git commands (`git status`, `git commit`, etc.), never `git -C` or `cd` workarounds
 
 ### 3. Unit Testing
 
