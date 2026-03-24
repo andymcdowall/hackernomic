@@ -5,6 +5,7 @@ This file contains specific instructions and workflows for Claude Code when work
 ## General Notes
 
 - PRs on this project are reviewed by both the user and ChatGPT in a separate pipeline. Write code and PR descriptions with this in mind — be clear, well-structured, and self-explanatory so any reviewer can follow the reasoning.
+- Avoid compound shell commands that mix `git` with `cd` (e.g. `cd foo && git commit`). Prefer absolute paths or plain `git` commands from the current working directory to avoid triggering permission prompts.
 
 ## Feature Development Workflow
 
@@ -154,7 +155,7 @@ This project is pre-alpha — do not add backwards-compatibility shims (e.g., un
 
 - **NEVER create a PR without user confirmation**
 - **ALWAYS run tests before asking for user confirmation**
-- **ALWAYS use `gh` CLI for GitHub operations** (not manual web interface)
+- **PREFER using GitHub MCP tools for GitHub operations** (not `gh` CLI unless necessary, and NEVER manual web interface)
 - **DO NOT push to main/master directly** - all changes go through PRs
 - **DO NOT use `--force` push** unless explicitly requested by user
 - **DO NOT skip hooks** (--no-verify) unless user explicitly requests it
