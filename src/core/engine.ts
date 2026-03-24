@@ -14,6 +14,7 @@ import type {
   VoteValue,
   VotingRules,
 } from './types.js';
+import { NomicEngineError, RuleExecutionError } from './types.js';
 import { addPlayer, createInitialState, emitSystemEvent, generateId } from './state.js';
 import { TurnManager } from '../systems/turn.js';
 import { VotingManager } from '../systems/voting.js';
@@ -87,7 +88,7 @@ export class NomicEngine {
    */
   addPlayer(name: string): Player {
     if (this.state.status !== 'setup') {
-      throw new Error('Players can only be added during setup');
+      throw new NomicEngineError('Players can only be added during setup', 'INVALID_STATE');
     }
 
     const player: Player = {
@@ -106,7 +107,7 @@ export class NomicEngine {
    */
   initialize(playerNames: string[]): void {
     if (this.state.status !== 'setup') {
-      throw new Error('Game already initialized');
+      throw new NomicEngineError('Game already initialized', 'INVALID_STATE');
     }
 
     for (const name of playerNames) {
@@ -312,7 +313,7 @@ export class NomicEngine {
   executeRule(ruleId: string, triggeredBy: string): void {
     const rule = this.state.rules.find(r => r.id === ruleId);
     if (!rule) {
-      throw new Error(`Rule ${ruleId} not found`);
+      throw new NomicEngineError(`Rule ${ruleId} not found`, 'NOT_FOUND');
     }
 
     const context: RuleContext = {
@@ -322,7 +323,7 @@ export class NomicEngine {
 
     const result = this.ruleExecutor.executeRule(this.state, rule, context);
     if (!result.success) {
-      throw new Error(`Rule execution failed: ${result.error}`);
+      throw new RuleExecutionError(`Rule execution failed: ${result.error}`, rule, result.error);
     }
 
     if (result.state) {

@@ -44,18 +44,9 @@ If the feature involves user-facing functionality or integration between multipl
 - Verify expected behavior and outputs
 - Document the test scenario in comments
 
-### 5. User Confirmation
+### 5. Create GitHub Pull Request
 
-**REQUIRED** - Before creating a PR:
-- Summarize the changes made
-- Show test results (unit + E2E)
-- Ask the user for confirmation that the feature meets requirements
-- Address any feedback or concerns
-- Only proceed to PR creation after explicit user approval
-
-### 6. Create GitHub Pull Request
-
-After user confirmation:
+After tests pass:
 - Ensure all changes are committed
 - Push the branch to origin: `git push -u origin <branch-name>`
 - Create PR using `gh` CLI with:
@@ -82,7 +73,7 @@ EOF
 
 - Return the PR URL to the user
 
-### 7. Review and Iteration
+### 6. Review and Iteration
 
 After PR is created:
 - User will review and may add comments
@@ -144,7 +135,6 @@ This project is pre-alpha — do not add backwards-compatibility shims (e.g., un
 
 ## Important Notes
 
-- **NEVER create a PR without user confirmation**
 - **ALWAYS run tests before asking for user confirmation**
 - **ALWAYS use `gh` CLI for GitHub operations** (not manual web interface)
 - **DO NOT push to main/master directly** - all changes go through PRs

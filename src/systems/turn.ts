@@ -5,6 +5,7 @@
  */
 
 import type { Action, GameState, TurnRecord, TurnStats } from '../core/types.js';
+import { NomicEngineError } from '../core/types.js';
 import { emitSystemEvent, generateId, updateState } from '../core/state.js';
 
 // ============================================================================
@@ -18,13 +19,13 @@ export class TurnManager {
    */
   startGame(state: GameState): GameState {
     if (state.status !== 'setup') {
-      throw new Error(`Cannot start game in ${state.status} status`);
+      throw new NomicEngineError(`Cannot start game in ${state.status} status`, 'INVALID_STATE');
     }
 
     const activePlayers = state.players.filter(p => p.isActive);
 
     if (activePlayers.length < 2) {
-      throw new Error('Need at least 2 active players to start the game');
+      throw new NomicEngineError('Need at least 2 active players to start the game', 'INVALID_STATE');
     }
 
     // Initialize turn order (sequential by join order)
@@ -63,11 +64,11 @@ export class TurnManager {
    */
   endTurn(state: GameState, actions: ReadonlyArray<Action> = []): GameState {
     if (state.status !== 'active') {
-      throw new Error(`Cannot end turn when game is ${state.status}`);
+      throw new NomicEngineError(`Cannot end turn when game is ${state.status}`, 'INVALID_STATE');
     }
 
     if (state.turns.currentPlayerId === null) {
-      throw new Error('No active turn to end');
+      throw new NomicEngineError('No active turn to end', 'INVALID_STATE');
     }
 
     const currentTurn = state.turns.currentTurn;
@@ -78,7 +79,7 @@ export class TurnManager {
     // Find next player
     const currentIndex = state.turns.turnOrder.indexOf(currentPlayerId);
     if (currentIndex === -1) {
-      throw new Error(`Current player ${currentPlayerId} not found in turn order`);
+      throw new NomicEngineError(`Current player ${currentPlayerId} not found in turn order`, 'NOT_FOUND');
     }
 
     const nextIndex = (currentIndex + 1) % state.turns.turnOrder.length;
@@ -209,7 +210,7 @@ export class TurnManager {
    */
   pauseGame(state: GameState): GameState {
     if (state.status !== 'active') {
-      throw new Error(`Cannot pause game in ${state.status} status`);
+      throw new NomicEngineError(`Cannot pause game in ${state.status} status`, 'INVALID_STATE');
     }
 
     return updateState(state, draft => {
@@ -222,7 +223,7 @@ export class TurnManager {
    */
   resumeGame(state: GameState): GameState {
     if (state.status !== 'paused') {
-      throw new Error(`Cannot resume game in ${state.status} status`);
+      throw new NomicEngineError(`Cannot resume game in ${state.status} status`, 'INVALID_STATE');
     }
 
     return updateState(state, draft => {
@@ -235,11 +236,11 @@ export class TurnManager {
    */
   skipTurn(state: GameState, reason: string): GameState {
     if (state.status !== 'active') {
-      throw new Error(`Cannot skip turn when game is ${state.status}`);
+      throw new NomicEngineError(`Cannot skip turn when game is ${state.status}`, 'INVALID_STATE');
     }
 
     if (state.turns.currentPlayerId === null) {
-      throw new Error('No active turn to skip');
+      throw new NomicEngineError('No active turn to skip', 'INVALID_STATE');
     }
 
     const skipAction: Action = {

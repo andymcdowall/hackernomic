@@ -257,8 +257,21 @@ export type Writable<T> = {
 // Error Types
 // ============================================================================
 
+export type NomicErrorCode =
+  | 'NOT_FOUND'
+  | 'INVALID_STATE'
+  | 'PLAYER_INACTIVE'
+  | 'ALREADY_VOTED'
+  | 'PROPOSAL_RESOLVED'
+  | 'PROPOSAL_LIMIT'
+  | 'PERMISSION_DENIED'
+  | 'RULE_EXECUTION_FAILED';
+
 export class NomicEngineError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    public readonly code: NomicErrorCode
+  ) {
     super(message);
     this.name = 'NomicEngineError';
   }
@@ -270,7 +283,7 @@ export class RuleExecutionError extends NomicEngineError {
     public readonly rule: Rule,
     public readonly cause?: unknown
   ) {
-    super(message);
+    super(message, 'RULE_EXECUTION_FAILED');
     this.name = 'RuleExecutionError';
   }
 }
@@ -280,7 +293,7 @@ export class StateValidationError extends NomicEngineError {
     message: string,
     public readonly errors: ReadonlyArray<string>
   ) {
-    super(message);
+    super(message, 'INVALID_STATE');
     this.name = 'StateValidationError';
   }
 }
