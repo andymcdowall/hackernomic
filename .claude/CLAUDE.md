@@ -5,6 +5,7 @@ This file contains specific instructions and workflows for Claude Code when work
 ## General Notes
 
 - PRs on this project are reviewed by both the user and ChatGPT in a separate pipeline. Write code and PR descriptions with this in mind — be clear, well-structured, and self-explanatory so any reviewer can follow the reasoning.
+- Avoid compound shell commands that mix `git` with `cd` (e.g. `cd foo && git commit`). Prefer absolute paths or plain `git` commands from the current working directory to avoid triggering permission prompts.
 
 ## Feature Development Workflow
 
