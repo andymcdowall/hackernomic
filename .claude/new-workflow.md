@@ -10,10 +10,11 @@ Large features are decomposed into tickets. Each ticket is implemented by a dedi
 
 ```
 main
- └── feature/<feature-name>        ← feature branch
-       ├── ticket/01-<description> ← ticket 1 PR → feature branch
-       ├── ticket/02-<description> ← ticket 2 PR → feature branch (depends on 01)
-       └── ticket/03-<description> ← ticket 3 PR → feature branch (depends on 01, parallel with 02)
+ └── feature/<feature-name>           ← feature branch (PRs to main only after final QA)
+       ├── feature/<feature-name>/0   ← roadmap + scaffolding PR → feature branch
+       ├── ticket/01-<description>    ← ticket 1 PR → feature branch
+       ├── ticket/02-<description>    ← ticket 2 PR → feature branch (depends on 01)
+       └── ticket/03-<description>    ← ticket 3 PR → feature branch (depends on 01, parallel with 02)
 ```
 
 ---
@@ -43,9 +44,10 @@ Invoke with `/roadmap <feature-name>`. The roadmap instance:
 1. Enters an isolated worktree
 2. Explores the codebase and dialogues with the user about decomposition
 3. Creates the feature branch: `feature/<feature-name>`
-4. Writes the roadmap to `.claude/features/<feature-name>.md`
-5. Produces any scaffolding needed to give implementors a head start (docs, config, type stubs, etc.)
-6. Commits everything and opens a PR from the feature branch targeting `main`
+4. Creates a roadmap sub-branch off the feature branch: `feature/<feature-name>/0`
+5. Writes the roadmap to `.claude/features/<feature-name>.md`
+6. Produces any scaffolding needed to give implementors a head start (docs, config, type stubs, etc.)
+7. Commits everything to `feature/<feature-name>/0` and opens a PR targeting `feature/<feature-name>` (not `main`)
 
 ### Roadmap File Format
 
