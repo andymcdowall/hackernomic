@@ -21,6 +21,8 @@ npm run test:coverage
 
 Coverage is measured using the `v8` provider (built into Node.js) via `@vitest/coverage-v8`.
 
+> **Note**: Vitest is pinned to v3.x (`@vitest/coverage-v8@3`). Vitest v4 requires Node >= 20.19.0 due to its rolldown bundler dependency. Upgrade both packages together once Node is updated.
+
 **Threshold**: 80% across all four metrics — statements, branches, functions, and lines.
 
 Running `npm run test:coverage` will fail the build if coverage drops below 80% on any metric. A detailed HTML report is generated in `coverage/` (gitignored).
