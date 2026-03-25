@@ -31,6 +31,7 @@ git checkout -b feature/<description>
 - Keep commits focused and descriptive
 - Commit incrementally as you complete logical units of work
 - When running inside a worktree, the Bash tool's CWD is already the worktree directory — use plain git commands (`git status`, `git commit`, etc.), never `git -C` or `cd` workarounds
+- When running inside a worktree, use the worktree's own absolute path as the base for all file reads, writes, and edits — never reach back to the main repository root
 
 ### 3. Unit Testing
 
