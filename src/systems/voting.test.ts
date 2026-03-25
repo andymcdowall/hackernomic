@@ -330,6 +330,29 @@ describe('VotingManager', () => {
       expect(event).toBeDefined();
       expect(event?.actorId).toBe(players[1].id);
     });
+
+    it('does not mutate the original state', () => {
+      const players = [makePlayer(), makePlayer()];
+      const state = stateWithProposal(players);
+      const proposalId = state.voting.activeProposals[0].id;
+      const originalVoteCount = state.voting.activeProposals[0].votes.size;
+
+      manager.castVote(state, proposalId, players[1].id, 'yes');
+
+      expect(state.voting.activeProposals[0].votes.size).toBe(originalVoteCount);
+    });
+
+    it('proposer is allowed to vote on their own proposal', () => {
+      // The rules do not prohibit self-voting — players[0] creates the proposal
+      // and can immediately cast a vote on it.
+      const players = [makePlayer(), makePlayer()];
+      const state = stateWithProposal(players);
+      const proposalId = state.voting.activeProposals[0].id;
+
+      expect(() =>
+        manager.castVote(state, proposalId, players[0].id, 'yes')
+      ).not.toThrow();
+    });
   });
 
   // --------------------------------------------------------------------------
@@ -592,6 +615,16 @@ describe('VotingManager', () => {
 
       const event = next.pendingEvents.find(e => e.type === 'proposal-passed');
       expect(event).toBeDefined();
+    });
+
+    it('does not mutate the original state', () => {
+      const players = [makePlayer(), makePlayer()];
+      const { state: preResolve, proposalId } = fullyVotedState(players, ['yes', 'yes']);
+      const originalActiveCount = preResolve.voting.activeProposals.length;
+
+      manager.resolveProposal(preResolve, proposalId);
+
+      expect(preResolve.voting.activeProposals.length).toBe(originalActiveCount);
     });
 
     it('does not emit proposal-failed event on failure (current behavior)', () => {
