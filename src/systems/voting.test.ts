@@ -1,6 +1,8 @@
 /**
  * Unit tests for VotingManager
- * Tests proposal creation, vote casting, resolution logic, and point awards.
+ * Tests proposal creation, vote casting, resolution logic, and event emission.
+ * Note: VotingManager emits a `proposal-passed` event on adoption; point awards
+ * are handled downstream by Rule 4 via the event dispatcher.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -46,7 +48,8 @@ function makeActiveState(...players: Player[]): GameState {
   for (const player of players) {
     state = addPlayer(state, player);
   }
-  // Set to active status
+  // Set to active status. Uses `as any` because GameState.status is readonly;
+  // acceptable in test helpers until a dedicated factory/setter exists.
   state = updateState(state, draft => {
     (draft as any).status = 'active';
   });
@@ -204,6 +207,7 @@ describe('VotingManager', () => {
   // --------------------------------------------------------------------------
 
   describe('castVote', () => {
+    // players[0] is always the proposer in this helper.
     function stateWithProposal(players: Player[]) {
       const state = makeActiveState(...players);
       const rule = makeRule();
@@ -295,10 +299,10 @@ describe('VotingManager', () => {
       state = manager.castVote(state, proposalId, players[1].id, 'yes');
       state = manager.resolveProposal(state, proposalId);
 
-      // Proposal is now in history, not in activeProposals
+      // Proposal is now in history, not in activeProposals → 'not found'
       expect(() =>
         manager.castVote(state, proposalId, players[0].id, 'yes')
-      ).toThrow();
+      ).toThrow('not found');
     });
 
     it('emits a vote-cast pending event', () => {
@@ -341,6 +345,37 @@ describe('VotingManager', () => {
       state = manager.castVote(state, proposalId, players[1].id, 'no');
 
       expect(manager.canResolve(state, proposalId)).toBe(true);
+    });
+
+    it('returns true when all players have voted including abstains', () => {
+      // Abstain counts as a cast vote; once all players have voted canResolve is true
+      const players = [makePlayer(), makePlayer(), makePlayer()];
+      let state = makeActiveState(...players);
+      const rule = makeRule();
+      state = manager.createProposal(state, 'add-rule', players[0].id, 'desc', rule);
+      const proposalId = state.voting.activeProposals[0].id;
+
+      state = manager.castVote(state, proposalId, players[0].id, 'yes');
+      state = manager.castVote(state, proposalId, players[1].id, 'abstain');
+      state = manager.castVote(state, proposalId, players[2].id, 'abstain');
+
+      expect(manager.canResolve(state, proposalId)).toBe(true);
+    });
+
+    it('requireAllVotes=false currently behaves the same as requireAllVotes=true', () => {
+      // The source notes "For now, keep it simple: require all votes" even when
+      // requireAllVotes is false. This test enshrines that current behavior.
+      const players = [makePlayer(), makePlayer(), makePlayer()];
+      let state = makeActiveState(...players);
+      const rule = makeRule();
+      state = manager.createProposal(state, 'add-rule', players[0].id, 'desc', rule);
+      const proposalId = state.voting.activeProposals[0].id;
+
+      // Only one of three players has voted
+      state = manager.castVote(state, proposalId, players[0].id, 'yes');
+
+      const partialVotesRules: VotingRules = { threshold: 0.5, requireAllVotes: false };
+      expect(manager.canResolve(state, proposalId, partialVotesRules)).toBe(false);
     });
 
     it('returns false for a non-existent proposal', () => {
@@ -628,6 +663,13 @@ describe('VotingManager', () => {
       expect(manager.getProposal(state, 'bad-id')).toBeUndefined();
     });
 
+    it('getVotes returns undefined for an unknown proposal id', () => {
+      const player = makePlayer();
+      const state = makeActiveState(player);
+
+      expect(manager.getVotes(state, 'bad-id')).toBeUndefined();
+    });
+
     it('getVotes returns the votes map for a proposal', () => {
       const players = [makePlayer(), makePlayer()];
       let state = makeActiveState(...players);
@@ -649,6 +691,13 @@ describe('VotingManager', () => {
       state = manager.castVote(state, proposalId, players[0].id, 'yes');
 
       expect(manager.hasVoted(state, proposalId, players[0].id)).toBe(true);
+    });
+
+    it('hasVoted returns false for an unknown proposal id', () => {
+      const player = makePlayer();
+      const state = makeActiveState(player);
+
+      expect(manager.hasVoted(state, 'bad-id', player.id)).toBe(false);
     });
 
     it('hasVoted returns false before voting', () => {
