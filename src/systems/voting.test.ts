@@ -7,6 +7,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { VotingManager } from './voting.js';
+import { TurnManager } from './turn.js';
 import { createInitialState, generateId, updateState, addPlayer } from '../core/state.js';
 import type { GameState, Player, Rule, VotingRules } from '../core/types.js';
 
@@ -40,20 +41,29 @@ function makeRule(overrides: Partial<Rule> = {}): Rule {
   };
 }
 
+const turnManager = new TurnManager();
+
 /**
  * Create an active game state with the given players.
+ *
+ * With 2+ players, uses TurnManager.startGame() — the proper API — which sets
+ * status, turnStartedAt, and turn order in one step.
+ *
+ * With 1 player (only used in error-path tests where turn state doesn't matter),
+ * falls back to an `as any` cast because startGame() requires ≥2 active players.
  */
 function makeActiveState(...players: Player[]): GameState {
   let state = createInitialState('test-game');
   for (const player of players) {
     state = addPlayer(state, player);
   }
-  // Set to active status. Uses `as any` because GameState.status is readonly;
-  // acceptable in test helpers until a dedicated factory/setter exists.
-  state = updateState(state, draft => {
+  if (players.filter(p => p.isActive).length >= 2) {
+    return turnManager.startGame(state);
+  }
+  // Single-player fallback for error-condition tests only.
+  return updateState(state, draft => {
     (draft as any).status = 'active';
   });
-  return state;
 }
 
 // ============================================================================
@@ -138,26 +148,28 @@ describe('VotingManager', () => {
     });
 
     it('enforces Rule 2: only one proposal per turn', () => {
-      const player = makePlayer();
-      const state = makeActiveState(player);
+      // Use a second player so makeActiveState calls TurnManager.startGame(),
+      // which sets turnStartedAt — no manual patching needed.
+      const [player, other] = [makePlayer(), makePlayer()];
+      const state = makeActiveState(player, other);
       const rule = makeRule();
 
-      // Set turnStartedAt to a past time so proposals fall within this turn
-      const stateWithTurn = updateState(state, draft => {
-        (draft.turns as any).turnStartedAt = Date.now() - 1000;
-      });
-
-      const afterFirst = manager.createProposal(
-        stateWithTurn,
-        'add-rule',
-        player.id,
-        'First proposal',
-        rule
-      );
+      const afterFirst = manager.createProposal(state, 'add-rule', player.id, 'First proposal', rule);
 
       expect(() =>
         manager.createProposal(afterFirst, 'add-rule', player.id, 'Second proposal', rule)
       ).toThrow('Rule 2: Only one proposal per turn is allowed');
+    });
+
+    it('add-rule does not require a rule argument', () => {
+      // Only modify-rule and remove-rule require a rule; add-rule intentionally
+      // does not (the rule to add can be supplied later or inferred by context).
+      const player = makePlayer();
+      const state = makeActiveState(player);
+
+      expect(() =>
+        manager.createProposal(state, 'add-rule', player.id, 'desc')
+      ).not.toThrow();
     });
 
     it('throws if modify-rule is missing a rule', () => {
@@ -289,17 +301,20 @@ describe('VotingManager', () => {
       ).toThrow('already voted');
     });
 
-    it('throws if proposal is not pending', () => {
+    it('throws if proposal has been resolved and moved to history', () => {
+      // Once resolved, the proposal is removed from activeProposals and moved to
+      // proposalHistory, so castVote throws 'not found' (not 'not pending').
+      // The 'not pending' guard in castVote only applies to proposals that somehow
+      // remain in activeProposals with a non-pending status, which the current
+      // model does not allow through normal code paths.
       const players = [makePlayer(), makePlayer()];
       let state = stateWithProposal(players);
       const proposalId = state.voting.activeProposals[0].id;
 
-      // Cast all votes and resolve
       state = manager.castVote(state, proposalId, players[0].id, 'yes');
       state = manager.castVote(state, proposalId, players[1].id, 'yes');
       state = manager.resolveProposal(state, proposalId);
 
-      // Proposal is now in history, not in activeProposals → 'not found'
       expect(() =>
         manager.castVote(state, proposalId, players[0].id, 'yes')
       ).toThrow('not found');
@@ -578,6 +593,18 @@ describe('VotingManager', () => {
       const event = next.pendingEvents.find(e => e.type === 'proposal-passed');
       expect(event).toBeDefined();
     });
+
+    it('does not emit proposal-failed event on failure (current behavior)', () => {
+      // proposal-failed is a reserved system event but VotingManager does not
+      // currently emit it — resolution status is recorded on the proposal object.
+      const players = [makePlayer(), makePlayer()];
+      const { state: preResolve, proposalId } = fullyVotedState(players, ['no', 'no']);
+
+      const next = manager.resolveProposal(preResolve, proposalId);
+
+      const event = next.pendingEvents.find(e => e.type === 'proposal-failed');
+      expect(event).toBeUndefined();
+    });
   });
 
   // --------------------------------------------------------------------------
@@ -597,6 +624,21 @@ describe('VotingManager', () => {
       expect(next.voting.activeProposals).toHaveLength(0);
       const withdrawn = next.voting.proposalHistory.find(p => p.id === proposalId);
       expect(withdrawn?.status).toBe('withdrawn');
+    });
+
+    it('does not emit proposal-withdrawn event (current behavior)', () => {
+      // proposal-withdrawn is a reserved system event but VotingManager does not
+      // currently emit it — withdrawal status is recorded on the proposal object.
+      const player = makePlayer();
+      let state = makeActiveState(player);
+      const rule = makeRule();
+      state = manager.createProposal(state, 'add-rule', player.id, 'desc', rule);
+      const proposalId = state.voting.activeProposals[0].id;
+
+      const next = manager.withdrawProposal(state, proposalId, player.id);
+
+      const event = next.pendingEvents.find(e => e.type === 'proposal-withdrawn');
+      expect(event).toBeUndefined();
     });
 
     it('throws if a non-proposer tries to withdraw', () => {
