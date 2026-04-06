@@ -39,7 +39,4 @@ export async function startServer(config: ServerConfig): Promise<void> {
     });
     server.on('error', reject);
   });
-
-  // Keep the process alive indefinitely.
-  await new Promise<void>(() => {});
 }
