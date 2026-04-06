@@ -6,6 +6,7 @@
  */
 
 import { NomicEngine } from '../core/engine.js';
+import { GameStorage } from '../persistence/storage.js';
 import { createApp } from './app.js';
 import type { ServerConfig } from './types.js';
 
@@ -18,10 +19,12 @@ import type { ServerConfig } from './types.js';
 export async function startServer(config: ServerConfig): Promise<void> {
   let engine: NomicEngine;
 
-  try {
-    engine = await NomicEngine.load(config.gameFile);
+  const storage = new GameStorage();
+  if (await storage.exists(config.gameFile)) {
+    const state = await storage.load(config.gameFile);
+    engine = new NomicEngine({ state });
     console.log(`Loaded game from ${config.gameFile}`);
-  } catch {
+  } else {
     engine = new NomicEngine();
     console.log(`No existing game file found at ${config.gameFile} — starting fresh`);
   }

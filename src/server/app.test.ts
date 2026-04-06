@@ -91,4 +91,15 @@ describe('createApp', () => {
       expect(engine.getState).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('unknown routes', () => {
+    it('returns 404 for an unregistered route', async () => {
+      const engine = makeEngineStub(makeMinimalState());
+      const app = createApp(engine);
+
+      const res = await request(app).get('/nonexistent');
+
+      expect(res.status).toBe(404);
+    });
+  });
 });
