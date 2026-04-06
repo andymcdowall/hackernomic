@@ -28,8 +28,15 @@ export async function startServer(config: ServerConfig): Promise<void> {
 
   const app = createApp(engine);
 
-  app.listen(config.port, () => {
-    console.log(`Nomic server listening on port ${config.port}`);
-    console.log(`Game file: ${config.gameFile}`);
+  await new Promise<void>((resolve, reject) => {
+    const server = app.listen(config.port, () => {
+      console.log(`Nomic server listening on port ${config.port}`);
+      console.log(`Game file: ${config.gameFile}`);
+      resolve();
+    });
+    server.on('error', reject);
   });
+
+  // Keep the process alive indefinitely.
+  await new Promise<void>(() => {});
 }
