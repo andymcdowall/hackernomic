@@ -25,5 +25,27 @@ export function createApp(engine: NomicEngine): Express {
     res.status(200).json(state);
   });
 
+  // ============================================================================
+  // GET /rules — all rules in the current game state
+  // ============================================================================
+
+  app.get('/rules', (_req, res) => {
+    const state = engine.getState();
+    res.status(200).json(state.rules);
+  });
+
+  // ============================================================================
+  // GET /proposals — active (unresolved) proposals only
+  //
+  // "Active" means proposals whose status is 'pending'. Resolved proposals
+  // (passed, failed, withdrawn) live in state.voting.proposalHistory and are
+  // excluded from this endpoint.
+  // ============================================================================
+
+  app.get('/proposals', (_req, res) => {
+    const state = engine.getState();
+    res.status(200).json(state.voting.activeProposals);
+  });
+
   return app;
 }
