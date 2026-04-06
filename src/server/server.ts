@@ -1,0 +1,35 @@
+/**
+ * Nomic HTTP game server entry point.
+ *
+ * Loads a game file, instantiates the engine, and starts listening on the
+ * configured port.
+ */
+
+import { NomicEngine } from '../core/engine.js';
+import { createApp } from './app.js';
+import type { ServerConfig } from './types.js';
+
+/**
+ * Start the HTTP game server.
+ *
+ * Loads existing game state from `config.gameFile` if the file exists,
+ * otherwise creates a fresh engine. Starts listening on `config.port`.
+ */
+export async function startServer(config: ServerConfig): Promise<void> {
+  let engine: NomicEngine;
+
+  try {
+    engine = await NomicEngine.load(config.gameFile);
+    console.log(`Loaded game from ${config.gameFile}`);
+  } catch {
+    engine = new NomicEngine();
+    console.log(`No existing game file found at ${config.gameFile} — starting fresh`);
+  }
+
+  const app = createApp(engine);
+
+  app.listen(config.port, () => {
+    console.log(`Nomic server listening on port ${config.port}`);
+    console.log(`Game file: ${config.gameFile}`);
+  });
+}
