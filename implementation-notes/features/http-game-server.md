@@ -6,6 +6,12 @@ Extract the game loop from the CLI into a standalone Express HTTP server. The se
 
 Started with `nomic server <game-file> [--port 3000]`.
 
+## Bruno Collection
+
+A Bruno API collection lives at `bruno/nomic-server/`. Each ticket that adds endpoints also creates the corresponding `.bru` request files. The collection uses a `local` environment with `baseUrl` set to `http://localhost:3000`.
+
+---
+
 ## Tickets
 
 ### Ticket 01 — Server bootstrap & CLI command
@@ -23,6 +29,7 @@ Started with `nomic server <game-file> [--port 3000]`.
 - `nomic server <file> --port 3000` starts without error
 - `GET /state` returns 200 with JSON body (engine state)
 - Unit test: app factory returns an Express app that responds 200 to `GET /state` with a minimal engine state injected
+- Bruno: `bruno/nomic-server/` collection scaffolded with `bruno.json`, `environments/local.bru`, and `get-state.bru`
 
 ---
 
@@ -40,6 +47,7 @@ Started with `nomic server <game-file> [--port 3000]`.
 - Each endpoint returns the correct slice of game state as JSON with status 200
 - Unit tests cover each endpoint with a mocked/seeded engine state
 - `GET /proposals` filters to only unresolved proposals
+- Bruno: `get-rules.bru`, `get-proposals.bru` added to the collection
 
 ---
 
@@ -58,6 +66,7 @@ Started with `nomic server <game-file> [--port 3000]`.
 - `POST /start` transitions the game to started state and returns 200
 - `POST /start` when game is already started returns 409
 - Unit tests cover all above cases with a real or stubbed engine
+- Bruno: `post-players.bru`, `post-start.bru` added to the collection
 
 ---
 
@@ -77,6 +86,7 @@ Started with `nomic server <game-file> [--port 3000]`.
 - `POST /vote` is not turn-gated — any player can vote at any time
 - `POST /end-turn` advances turn and returns updated state
 - Unit tests cover: successful propose, vote from each player, auto-resolve on final vote, end-turn
+- Bruno: `post-propose.bru`, `post-vote.bru`, `post-end-turn.bru` added to the collection
 
 ---
 
@@ -98,6 +108,7 @@ Started with `nomic server <game-file> [--port 3000]`.
 - Missing required fields return 400 on all write endpoints
 - Unknown `proposalId` on `POST /vote` returns 404
 - Unit tests cover every 4xx case above
+- Bruno: no new request files; existing `.bru` files updated with example error-case bodies where helpful
 
 ---
 
@@ -116,3 +127,4 @@ Started with `nomic server <game-file> [--port 3000]`.
 - Starting the server with a pre-existing game file resumes from that state (correct turn, rules, proposals)
 - If save fails, the endpoint still returns 2xx and the error is logged
 - Unit tests: mock `GameStorage`, verify `save()` is called after each write action; verify engine is seeded from `storage.load()` on startup
+- Bruno: no new request files needed (persistence is transparent to the HTTP interface)
