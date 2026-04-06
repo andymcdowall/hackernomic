@@ -26,6 +26,10 @@ Expected format: `<feature-name> <ticket-number>` (e.g. `payments 02`)
 10. Auto-create the PR targeting the feature branch (no user confirmation needed)
 11. Respond to all PR review comments, appending ` -Implementor` to each reply
 
+## File Paths
+
+After entering the worktree, all file reads, writes, edits, and git commands must use the worktree as the base. Never reference the main repository root (e.g. `/Users/.../nomic-engine/src/...`). The worktree contains a full working copy of the repo — use its path exclusively. Shell commands run from the worktree's CWD by default, so plain `git` commands (no `cd` or `git -C`) are correct.
+
 ## Autonomy
 
 Work to completion without asking the user for decisions. Prefer tools and operations that do not require permission prompts — reads, searches, writes, and test runs. Avoid actions that will pause for approval unless there is no alternative.
